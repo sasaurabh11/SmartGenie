@@ -6,7 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 
 function Navbar() {
-  const { user } = useContext(AppContext);
+  const { user, setShowLogin } = useContext(AppContext);
   const navigate = useNavigate();
 
   return (
@@ -19,7 +19,7 @@ function Navbar() {
           alt="Ginie"
           className="w-20 sm:w-28 lg:w-36 rounded-full shadow-lg"
         />
-        <h1 className="text-xl sm:text-2xl font-bold text-amber-100">Smart Ginie</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-amber-100">Smart Genie</h1>
       </Link>
 
       {/* User Section */}
@@ -51,7 +51,7 @@ function Navbar() {
             >
               Pricing
             </p>
-            <button className="text-zinc-900 bg-amber-50 px-7 py-2 sm:px-10 text-sm rounded-full font-medium">
+            <button onClick={() => setShowLogin(true)} className="text-zinc-900 bg-amber-50 px-7 py-2 sm:px-10 text-sm rounded-full font-medium cursor-pointer">
               Login
             </button>
           </div>
