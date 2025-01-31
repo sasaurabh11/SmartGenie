@@ -4,12 +4,60 @@ import EmailIcon from "../assets/email_icon.svg";
 import LockIcon from "../assets/lock_icon.svg";
 import CrossIcon from "../assets/cross_icon.svg";
 import { AppContext } from "../context/AppContext";
+import { loginUser, signupUser } from "../services/api";
+import { toast } from "react-toastify";
 
 const Login = () => {
   const [state, setState] = useState("Login");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [passwordError, setPasswordError] = useState("");
-  const { setShowLogin } = useContext(AppContext);
+  const { setShowLogin, setToken, setUser, showLogin } = useContext(AppContext);
+
+  const onSubmitHandler = async (e) => {
+    e.preventDefault();
+
+    try {
+      if (state === "Login") {
+        const data = {
+          email,
+          password,
+        };
+
+        const response = await loginUser(data);
+        console.log("response", response);
+
+        if (response.success) {
+          setToken(response.token);
+          setUser(response.user);
+          localStorage.setItem("token", response.token);
+          setShowLogin(false);
+        } else {
+          toast.error(response.message);
+        }
+      } else {
+        const data = {
+          name,
+          email,
+          password,
+        };
+
+        const response = await signupUser(data);
+
+        if (response.success) {
+          setToken(response.token);
+          setUser(response.user);
+          localStorage.setItem("token", response.token);
+          setShowLogin(false);
+        } else {
+          toast.error(response.message);
+        }
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -32,7 +80,10 @@ const Login = () => {
 
   return (
     <div className="fixed top-0 left-0 right-0 bottom-0 z-10 backdrop-blur-sm bg-black/30 flex justify-center items-center">
-      <form className="relative bg-cyan-200 p-10 rounded-xl text-slate-500">
+      <form
+        onSubmit={onSubmitHandler}
+        className="relative bg-cyan-200 p-10 rounded-xl text-slate-500"
+      >
         <h1 className="text-center text-2xl text-neutral-700 font-medium">
           {state}
         </h1>
@@ -42,6 +93,8 @@ const Login = () => {
           <div className="border px-5 py-2 flex items-center gap-2 rounded-full mt-5 h-14">
             <img src={userIcon} alt="" width={40} />
             <input
+              onChange={(e) => setName(e.target.value)}
+              value={name}
               type="text"
               className=" outline-none text-sm"
               placeholder="Your Awesome Name"
@@ -53,6 +106,8 @@ const Login = () => {
         <div className="border px-6 py-2 flex items-center gap-2 rounded-full mt-4 h-14">
           <img src={EmailIcon} alt="" width={30} />
           <input
+            onChange={(e) => setEmail(e.target.value)}
+            value={email}
             type="email"
             className=" outline-none text-sm ml-1"
             placeholder="your@gmail.com"
@@ -89,8 +144,8 @@ const Login = () => {
         </p>
 
         <button
-          className="bg-blue-600 w-full text-white py-2 rounded-full"
-          disabled={!!passwordError}
+          className="bg-blue-600 w-full text-white py-2 rounded-full cursor-pointer"
+          disabled={passwordError.length > 0}
         >
           {state === "Login" ? "login" : "create account"}
         </button>

@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import sampleImage from "../assets/ginie-image1.jpg";
+import { AppContext } from "../context/AppContext";
 
 const Result = () => {
   const [image, setImage] = useState(sampleImage);
@@ -7,8 +8,19 @@ const Result = () => {
   const [Loading, setLoading] = useState(false);
   const [input, setInput] = useState('')
 
-  const onSubmitHandler = async (e) => {
+  const {generateImage} = useContext(AppContext)
 
+  const onSubmitHandler = async (e) => {
+    e.preventDefault();
+    setLoading(true)
+    if(input) {
+      const image= await generateImage(input)
+      if(image) {
+        setImage(image)
+        setIsImageLoaded(true)
+      }
+    }
+    setLoading(false)
   }
 
   return (

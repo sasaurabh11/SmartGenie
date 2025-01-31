@@ -6,7 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 
 function Navbar() {
-  const { user, setShowLogin } = useContext(AppContext);
+  const { user, setShowLogin, logout, credit } = useContext(AppContext);
   const navigate = useNavigate();
 
   return (
@@ -31,14 +31,14 @@ function Navbar() {
               className="flex items-center gap-2 px-4 sm:px-6 py-1.5 sm:py-3 rounded-full hover:scale-105 transition-all duration-700 cursor-pointer bg-amber-50 text-amber-600"
             >
               <img className="w-5" src={creditstar} alt="" />
-              <p className="text-xs sm:text-sm font-medium">Credit left: 50</p>
+              <p className="text-xs sm:text-sm font-medium">Credit left: {credit}</p>
             </button>
-            <p className="hidden sm:block pl-4 text-zinc-100">Hi, Saurabh</p>
+            <p className="hidden sm:block pl-4 text-zinc-100">Hi, {user.name}</p>
             <div className="relative group">
               <img src={profileIcon} alt="" className="w-10 drop-shadow" />
               <div className="absolute hidden group-hover:block top-0 right-0 z-10 text-amber-100 rounded pt-12 cursor-pointer">
                 <ul className="list-none m-0 p-2 rounded-md border text-sm bg-pink-100 text-amber-900">
-                  <li className="py-1 px-2 cursor-pointer pr-10">Logout</li>
+                  <li onClick={logout} className="py-1 px-2 cursor-pointer pr-10">Logout</li>
                 </ul>
               </div>
             </div>
