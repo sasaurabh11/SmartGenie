@@ -17,7 +17,7 @@ const AppContextProvider = (props) => {
         try {
             
             const data = await loadCreditsData(token)
-            if(data.success) {
+            if(data && data.success) {
                 setCredit(data.credits)
                 setUser(data.user)
             }
@@ -34,7 +34,7 @@ const AppContextProvider = (props) => {
 
             console.log('response in context', response)
             
-            if(response.success) {
+            if(response && response.success) {
                 loadCreditsBalance()
                 return response.resultImage
             } else {
