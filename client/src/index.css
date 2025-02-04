@@ -17,3 +17,46 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+@keyframes fly-diagonal {
+  0% {
+    left: -100px;
+    bottom: -100px;
+    transform: scale(0.5) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(2) rotate(10deg);
+  }
+  100% {
+    left: 100vw;
+    bottom: 100vh;
+    transform: scale(0.5) rotate(-10deg);
+    opacity: 1;
+  }
+}
+
+.genie-fly-animation {
+  position: fixed;
+  bottom: -100px;
+  left: -100px;
+  width: 150px;
+  animation: fly-diagonal 4s ease-in-out forwards infinite;
+  z-index: 50;
+}
+
+.funny-message {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #ffcc00;
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+  margin-top: 10px;
+  animation: fade-in-out 4s ease-in-out forwards infinite;
+}
+
+@keyframes fade-in-out {
+  0% { opacity: 0; }
+  25% { opacity: 1; }
+  75% { opacity: 1; }
+  100% { opacity: 0; }
+}

@@ -10,7 +10,7 @@ function Navbar() {
   const navigate = useNavigate();
 
   return (
-    <div className="flex items-center justify-between py-4 px-6 shadow-md rounded-full bg-[#322136]">
+    <div className="flex items-center justify-between py-4 px-6 shadow-md rounded-full bg-[#322136] relative top-4">
 
       {/* Logo Section */}
       <Link to="/" className="flex items-center gap-3">
