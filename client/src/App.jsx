@@ -12,6 +12,7 @@ import { ToastContainer } from "react-toastify";
 const App = () => {
   const { showLogin, user } = useContext(AppContext);
   return (
+    <>
     <div className="px-4 sm:px-10 md:px-14 lg:px-28 min-h-screen bg-gradient-to-b from-[#3d3041] via-[#4a374e] to-[#432d44]">
       <ToastContainer position="bottom-right" />
       <Navbar />
@@ -29,8 +30,9 @@ const App = () => {
         />
         <Route path="/buy-credit" element={<BuyCredit />} />
       </Routes>
-      <Footer />
     </div>
+      <Footer />
+      </>
   );
 };
 

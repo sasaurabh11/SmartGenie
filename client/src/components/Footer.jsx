@@ -1,12 +1,12 @@
-import React from 'react'
+import React from 'react';
 
 const Footer = () => {
-    const currentYear = new Date().getFullYear();
+  const currentYear = new Date().getFullYear();
   return (
-    <div className='flex items-center justify-between gap-4 mt-20'>
-        <p className='flex-1 text-sm text-gray-400 max-sm:hidden'>Copyright {currentYear}  © SmartGenie | All right reserved.</p>
+    <div className="w-full bg-[#322136] py-3 sm:-my-4 md:-my-6 lg:my-0 flex items-center justify-center">
+      <p className="text-sm text-gray-400">Copyright {currentYear} © SmartGenie | All rights reserved.</p>
     </div>
-  )
-}
+  );
+};
 
-export default Footer
+export default Footer;
