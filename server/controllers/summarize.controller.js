@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import axios from 'axios';
 import uniquid from 'uniqid'
-import gTTS from 'gtts';
+import AWS from 'aws-sdk'
 
 async function scrapeWebsite(url) {
     const browser = await puppeteer.launch({ headless: "new" });
@@ -18,41 +18,88 @@ async function scrapeWebsite(url) {
 
 async function summarizeText(text) {
     const API_TOKEN = process.env.HUGGINGFACE_API_KEY;
+    
+    const prompt = `Create a direct, clear narrative summary of the following text in exactly 50 words. 
+    Present it as a standalone story without any introductory phrases like "here's" or "let me try". 
+    Focus on the key information in an engaging, story-like format. Use natural, human-friendly language:
+
+    ${text}
+
+    Remember: The summary must be exactly 50 words or less while maintaining a natural flow and including key information.`;
 
     try {
         const response = await axios.post(
-            "https://api-inference.huggingface.co/models/facebook/bart-large-cnn",
+            "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3",
             {
-                inputs: text,
+                inputs: prompt,
                 parameters: {
-                    max_length: 150,
-                    min_length: 50,
-                    do_sample: false,
+                    max_new_tokens: 100,
+                    temperature: 0.6,
+                    top_p: 0.85,
+                    do_sample: true,
+                    return_full_text: false,
+                    repetition_penalty: 1.2
                 }
             },
             {
                 headers: {
                     "Authorization": `Bearer ${API_TOKEN}`,
                     "Content-Type": "application/json",
-                }
+                },
+                timeout: 30000
             }
         );
 
-        const result = response.data;
-        console.log("got");
-        
-        if (Array.isArray(result) && result.length > 0) {
-            return result[0].summary_text;
+        if (Array.isArray(response.data) && response.data.length > 0) {
+            let summary = response.data[0].generated_text
+                .trim()
+                .replace(/^(Here'?s?\s*(an?|my)?\s*(example|try|attempt|summary)?:?\s*)/i, '')
+                .replace(/^Let me\s*(try|summarize|summarise)?:?\s*/i, '')
+                .replace(/^I'll\s*(try|summarize|summarise)?:?\s*/i, '')
+                .replace(/\n+/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+            
+            summary = summary.charAt(0).toUpperCase() + summary.slice(1);
+            
+            if (!summary.match(/[.!?]$/)) {
+                summary += '.';
+            }
+            
+            const words = summary.split(/\s+/);
+            if (words.length > 50) {
+                const sentences = summary.match(/[^.!?]+[.!?]+/g) || [];
+                summary = '';
+                let currentWordCount = 0;
+                
+                for (const sentence of sentences) {
+                    const sentenceWordCount = sentence.trim().split(/\s+/).length;
+                    if (currentWordCount + sentenceWordCount <= 50) {
+                        summary += sentence;
+                        currentWordCount += sentenceWordCount;
+                    } else {
+                        break;
+                    }
+                }
+            }
+            
+            return summary.trim();
         }
         
         throw new Error('Invalid response from API');
 
     } catch (error) {
-        console.error('Summarization error:', error);
+        if (error.code === 'ECONNABORTED') {
+            throw new Error('Request timed out. Please try again.');
+        }
+        
+        if (error.response?.data) {
+            console.error('API Error Response:', JSON.stringify(error.response.data, null, 2));
+        }
+        
         throw new Error('Failed to generate summary: ' + 
             (error.response?.data?.error || error.message));
     }
-
 }
 
 async function generateImages(prompt) {
@@ -69,8 +116,11 @@ async function generateImages(prompt) {
             data: { 
                 inputs: prompt 
             },
-            responseType: 'arraybuffer'
+            responseType: 'arraybuffer',
+            timeout: 60000,
         });
+
+        console.log('Image generated:', response.data.length, 'bytes');
         
         const base64Image = Buffer.from(response.data, 'binary').toString('base64');
         return base64Image;
@@ -84,20 +134,74 @@ async function generateImages(prompt) {
     }
 }
 
-async function generateVoiceOver(text, index, storiesDir) {
-    return new Promise((resolve, reject) => {
-        console.log(index, text);
-        const filePath = path.join(storiesDir, `voice-${index + 1}.mp3`);
-        const gtts = new gTTS(text, 'en');
+AWS.config.update({
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    region: 'us-east-1'
+});
 
-        gtts.save(filePath, (err) => {
-            if (err) {
-                reject(new Error(`Failed to save voiceover: ${err.message}`));
-            } else {
-                resolve(filePath);
-            }
+const polly = new AWS.Polly();
+
+async function generateVoiceOver(text, index, storiesDir) {
+    try {
+        console.log("Starting voice generation...");
+        const speechMarkParams = {
+            Engine: 'neural',
+            LanguageCode: 'en-IN',  // Changed to Indian English
+            OutputFormat: 'json',
+            SpeechMarkTypes: ['word'],
+            Text: text,
+            VoiceId: 'Kajal'  // Changed to Indian female voice
+        };
+
+        const speechMarkResponse = await polly.synthesizeSpeech(speechMarkParams).promise();
+
+        console.log("speechmark response", speechMarkResponse)
+
+        const speechMarks = speechMarkResponse.AudioStream.toString()
+            .split('\n')
+            .filter(Boolean)
+            .map(line => JSON.parse(line));
+
+        const timingData = speechMarks.map((mark, index) => {
+            const nextMark = speechMarks[index + 1];
+            return {
+                word: mark.value,
+                startTime: mark.time / 1000, // Convert to seconds
+                endTime: nextMark 
+                    ? nextMark.time / 1000  // Use next word's start time as current word's end time
+                    : (mark.time + mark.duration) / 1000  // For last word, use duration
+            };
         });
-    });
+
+        const audioParams = {
+            Engine: 'neural',
+            LanguageCode: 'en-IN',  // Changed to Indian English
+            OutputFormat: 'mp3',
+            Text: text,
+            VoiceId: 'Kajal'  // Changed to Indian female voice
+        };
+
+        const audioResponse = await polly.synthesizeSpeech(audioParams).promise();
+
+        console.log("audioResponse ", audioResponse)
+
+        const audioFilePath = path.join(storiesDir, `voice-${index + 1}.mp3`);
+        await fs.writeFile(audioFilePath, audioResponse.AudioStream);
+
+        const timingFilePath = path.join(storiesDir, `voice-${index + 1}-timing.json`);
+        await fs.writeFile(timingFilePath, JSON.stringify(timingData, null, 2));
+
+        return {
+            audioFile: audioFilePath,
+            timingFile: timingFilePath,
+            timing: timingData
+        };
+
+    } catch (error) {
+        console.error("Error details:", error);
+        throw new Error(`Failed to generate voiceover with timing: ${error.message}`);
+    }
 }
 
 async function saveStoriesToFile(stories, images, url) {
@@ -150,11 +254,11 @@ const summarize = async (req, res) => {
         const scrapedText = await scrapeWebsite(url);
 
         //create chunk of scraped data
-        const wordsPerChunk = 600;
+        const wordsPerChunk = 5000;
         const words = scrapedText.split(" ");
         const chunks = [];
 
-        if(words.length <= 1800) {
+        if(words.length <= 15000) {
             const chunkSize = Math.ceil(words.length / 3);
             for (let i = 0; i < 3; i++) {
                 chunks.push(words.slice(i * chunkSize, (i + 1) * chunkSize).join(" "));
@@ -171,6 +275,8 @@ const summarize = async (req, res) => {
                 return await summarizeText(chunk);
             })
         )
+
+        console.log(summarise)
         
         const images = await Promise.all(
             summarise.map( async (summary) => {
@@ -181,22 +287,18 @@ const summarize = async (req, res) => {
         const storiesDir = await saveStoriesToFile(summarise, images, url);
         console.log("stories directory", storiesDir)
 
-        try {
-            console.log("Generating voiceovers...");
-            const voiceoverFiles = await Promise.all(
-                summarise.map((summary, index) => generateVoiceOver(summary, index, storiesDir))
-            );
-            console.log("All voiceovers generated:", voiceoverFiles);
-        } catch (error) {
-            console.error("Error generating voiceovers:", error);
-        }
+        console.log("Generating voiceovers...");
+        const voiceoverFiles = await Promise.all(
+            summarise.map( async (summary, index) => await generateVoiceOver(summary, index, storiesDir))
+        );
+        console.log("All voiceovers generated:", voiceoverFiles);
         
 
         res.status(200).json({
             success: true,
             message: "Content extracted successfully",
             summarise: summarise,
-            images: images
+            // images: images
         });
 
     } catch (error) {
