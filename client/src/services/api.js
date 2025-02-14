@@ -65,3 +65,15 @@ export const paymentGateway = async (planId, token) => {
         return error.response.data;
     }
 }
+
+export const verifyRazor = async (data, token) => {
+    try {
+
+        const response = await axios.post(`${url}/api/v1/user/verify-razor`, data, {headers: {token}});
+        return response.data;
+        
+    } catch (error) {
+        console.error('error in verifyRazor API', error.message)
+        return error.response.data
+    }
+}

@@ -1,9 +1,13 @@
 import puppeteer from 'puppeteer'
-import fs from 'fs/promises';
+import fs from 'fs';
+import * as fsPromises from 'fs/promises';
 import path from 'path';
 import axios from 'axios';
 import uniquid from 'uniqid'
 import AWS from 'aws-sdk'
+import ffmpeg from 'fluent-ffmpeg'
+import ffmpegpath from 'ffmpeg-static'
+import ffprobePath from 'ffprobe-static'
 
 async function scrapeWebsite(url) {
     const browser = await puppeteer.launch({ headless: "new" });
@@ -147,11 +151,11 @@ async function generateVoiceOver(text, index, storiesDir) {
         console.log("Starting voice generation...");
         const speechMarkParams = {
             Engine: 'neural',
-            LanguageCode: 'en-IN',  // Changed to Indian English
+            LanguageCode: 'en-IN',  
             OutputFormat: 'json',
-            SpeechMarkTypes: ['word'],
+            SpeechMarkTypes: ['word', 'sentence'],
             Text: text,
-            VoiceId: 'Kajal'  // Changed to Indian female voice
+            VoiceId: 'Kajal' 
         };
 
         const speechMarkResponse = await polly.synthesizeSpeech(speechMarkParams).promise();
@@ -163,23 +167,36 @@ async function generateVoiceOver(text, index, storiesDir) {
             .filter(Boolean)
             .map(line => JSON.parse(line));
 
-        const timingData = speechMarks.map((mark, index) => {
-            const nextMark = speechMarks[index + 1];
+        const wordMarks = speechMarks.filter(mark => mark.type === 'word');
+
+        const timingData = wordMarks.map((mark, index) => {
+            const nextMark = wordMarks[index + 1];
+            const currentDuration = mark.duration / 1000;
+            
+            const startTime = mark.time / 1000;
+            
+            const endTime = nextMark 
+                ? nextMark.time / 1000 
+                : mark.duration 
+                    ? (mark.time + mark.duration) / 1000 
+                    : startTime + 0.3;
+            
             return {
                 word: mark.value,
-                startTime: mark.time / 1000, // Convert to seconds
-                endTime: nextMark 
-                    ? nextMark.time / 1000  // Use next word's start time as current word's end time
-                    : (mark.time + mark.duration) / 1000  // For last word, use duration
+                startTime: parseFloat(startTime.toFixed(3)),
+                endTime: parseFloat(endTime.toFixed(3)),
+                duration: parseFloat((endTime - startTime).toFixed(3))
             };
         });
 
+        const totalDuration = parseFloat(timingData[timingData.length - 1].endTime.toFixed(3));
+
         const audioParams = {
             Engine: 'neural',
-            LanguageCode: 'en-IN',  // Changed to Indian English
+            LanguageCode: 'en-IN', 
             OutputFormat: 'mp3',
             Text: text,
-            VoiceId: 'Kajal'  // Changed to Indian female voice
+            VoiceId: 'Kajal' 
         };
 
         const audioResponse = await polly.synthesizeSpeech(audioParams).promise();
@@ -187,10 +204,10 @@ async function generateVoiceOver(text, index, storiesDir) {
         console.log("audioResponse ", audioResponse)
 
         const audioFilePath = path.join(storiesDir, `voice-${index + 1}.mp3`);
-        await fs.writeFile(audioFilePath, audioResponse.AudioStream);
+        await fsPromises.writeFile(audioFilePath, audioResponse.AudioStream);
 
         const timingFilePath = path.join(storiesDir, `voice-${index + 1}-timing.json`);
-        await fs.writeFile(timingFilePath, JSON.stringify(timingData, null, 2));
+        await fsPromises.writeFile(timingFilePath, JSON.stringify({words : timingData, totalDuration: totalDuration}, null, 2));
 
         return {
             audioFile: audioFilePath,
@@ -207,15 +224,15 @@ async function generateVoiceOver(text, index, storiesDir) {
 async function saveStoriesToFile(stories, images, url) {
     try {        
         const baseDir = path.join(process.cwd(), 'stories');
-        await fs.mkdir(baseDir, { recursive: true });
+        await fsPromises.mkdir(baseDir, { recursive: true });
 
         const uniqueDir = uniquid();
         const storiesDir = path.join(baseDir, uniqueDir);
-        await fs.mkdir(storiesDir, { recursive: true });
+        await fsPromises.mkdir(storiesDir, { recursive: true });
         
         await Promise.all(stories.map((story, index) => {
             const fileName = `story-${index + 1}.txt`;
-            return fs.writeFile(
+            return fsPromises.writeFile(
                 path.join(storiesDir, fileName),
                 story
             )
@@ -224,10 +241,10 @@ async function saveStoriesToFile(stories, images, url) {
         await Promise.all(images.map(async (base64Image, index) => {
             const imageBuffer = Buffer.from(base64Image, 'base64');
             const imagePath = path.join(storiesDir, `image-${index + 1}.png`);
-            await fs.writeFile(imagePath, imageBuffer);
+            await fsPromises.writeFile(imagePath, imageBuffer);
         }));
 
-        await fs.writeFile(
+        await fsPromises.writeFile(
             path.join(storiesDir, 'metadata.json'),
             JSON.stringify({
                 url,
@@ -246,7 +263,7 @@ async function saveStoriesToFile(stories, images, url) {
 
 const summarize = async (req, res) => {
     try {
-        const { url } = req.query;
+        const url = decodeURIComponent(req.query.url);
         if (!url) {
             return res.status(400).json({ success: false, message: "URL is required" });
         }
@@ -270,6 +287,7 @@ const summarize = async (req, res) => {
             }
         }
 
+        //summarization using hugging face
         const summarise = await Promise.all(
             chunks.map(async (chunk) => {
                 return await summarizeText(chunk);
@@ -296,9 +314,7 @@ const summarize = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: "Content extracted successfully",
-            summarise: summarise,
-            // images: images
+            storiesDir
         });
 
     } catch (error) {
@@ -306,4 +322,82 @@ const summarize = async (req, res) => {
     }
 };
 
-export { summarize };
+
+ffmpeg.setFfmpegPath(ffmpegpath)
+ffmpeg.setFfprobePath(ffprobePath.path)
+
+const buildVideo = async (req, res) => {
+    try {
+        const dir = 'E:\\Sarre Programs\\SmartGenie\\server\\stories\\agwqhdwm74obivk';
+    
+        const images = ['image-1.png', 'image-2.png', 'image-3.png'];
+        const audio = ['voice-1.mp3', 'voice-2.mp3', 'voice-3.mp3'];
+        const transcriptions = ['voice-1-timing.json', 'voice-2-timing.json', 'voice-3-timing.json'];
+    
+        for(let i = 0; i < images.length; i++) {
+            const inputImage = path.join(dir, images[i]);
+            const inputAudio = path.join(dir, audio[i]);
+            const inputTransciption = path.join(dir, transcriptions[i]);
+
+            // read the transcription file
+            const transcription = JSON.parse(fs.readFileSync(inputTransciption, 'utf-8'));
+            const words = transcription.words;
+            const duration = parseFloat(transcription.totalDuration).toFixed(2);
+
+            // Build the drawtext filter string
+            let drawtextFilter = '';
+            words.forEach(wordInfo => {
+                const word = wordInfo.word.replace(/'/g, "’").replace(/"/g, '\"');
+
+                const start = parseFloat(wordInfo.startTime).toFixed(2);
+                const end = parseFloat(wordInfo.endTime).toFixed(2);
+                drawtextFilter += `drawtext=text='${word}':fontcolor=white:fontsize=96:borderw=4:bordercolor=black:x=(w-text_w)/2:y=(h*3/4)-text_h:enable='between(t\\,${start}\\,${end})',`;
+            });
+            // remove last comma
+            drawtextFilter = drawtextFilter.slice(0, -1);
+
+            console.log(`Processing: ${inputImage} and ${inputAudio}`);
+
+            const outputVideo = path.join(dir, `output-${i + 1}.mp4`);
+            await new Promise((resolve, reject) => {
+            ffmpeg()
+                .input(inputImage)
+                .loop(duration)
+                .input(inputAudio)
+                .audioCodec('copy')
+                .videoFilter(drawtextFilter)
+                .outputOptions('-t', duration)
+                .on('error', e => {
+                console.error(e);
+                reject(e);
+                })
+                .on('end', resolve)
+                .save(outputVideo);
+            });
+
+            console.log(`${outputVideo} is complete`);
+        }
+
+        console.log('Merging 3 videos together');
+        await new Promise((resolve, reject) => {
+            ffmpeg()
+            .input(path.join(dir, 'output-1.mp4'))
+            .input(path.join(dir, 'output-2.mp4'))
+            .input(path.join(dir, 'output-3.mp4'))
+            .on('end', resolve)
+            .on('error', reject)
+            .mergeToFile(path.join(dir, 'final.mp4'));
+        });
+
+        console.log('done');
+        res.status(200).json({ success: true});
+    } catch (error) {
+        console.error('Error building video:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        })
+    }
+}
+
+export { summarize, buildVideo };

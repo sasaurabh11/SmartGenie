@@ -19,6 +19,7 @@ app.use(cors({
     origin: [process.env.CORS_ORIGIN],
     credentials: true
 }))
+app.use(express.static('stories'));
 
 app.use('/api/v1/user', userRouter);
 app.use('/api/v1/image', imageRouter);

@@ -1,0 +1,287 @@
+{
+  "words": [
+    {
+      "word": "Albert",
+      "startTime": 0.187,
+      "endTime": 0.562,
+      "duration": 0.375
+    },
+    {
+      "word": "Einstein",
+      "startTime": 0.562,
+      "endTime": 1.25,
+      "duration": 0.688
+    },
+    {
+      "word": "renowned",
+      "startTime": 1.25,
+      "endTime": 1.625,
+      "duration": 0.375
+    },
+    {
+      "word": "physicist",
+      "startTime": 1.625,
+      "endTime": 2.387,
+      "duration": 0.762
+    },
+    {
+      "word": "developed",
+      "startTime": 2.387,
+      "endTime": 2.825,
+      "duration": 0.438
+    },
+    {
+      "word": "the",
+      "startTime": 2.825,
+      "endTime": 2.95,
+      "duration": 0.125
+    },
+    {
+      "word": "theories",
+      "startTime": 2.95,
+      "endTime": 3.387,
+      "duration": 0.437
+    },
+    {
+      "word": "of",
+      "startTime": 3.387,
+      "endTime": 3.5,
+      "duration": 0.113
+    },
+    {
+      "word": "relativity",
+      "startTime": 3.5,
+      "endTime": 4.312,
+      "duration": 0.812
+    },
+    {
+      "word": "revolutionizing",
+      "startTime": 4.312,
+      "endTime": 5.15,
+      "duration": 0.838
+    },
+    {
+      "word": "our",
+      "startTime": 5.15,
+      "endTime": 5.375,
+      "duration": 0.225
+    },
+    {
+      "word": "understanding",
+      "startTime": 5.375,
+      "endTime": 6.025,
+      "duration": 0.65
+    },
+    {
+      "word": "of",
+      "startTime": 6.025,
+      "endTime": 6.125,
+      "duration": 0.1
+    },
+    {
+      "word": "space",
+      "startTime": 6.125,
+      "endTime": 6.625,
+      "duration": 0.5
+    },
+    {
+      "word": "time",
+      "startTime": 6.625,
+      "endTime": 7.125,
+      "duration": 0.5
+    },
+    {
+      "word": "and",
+      "startTime": 7.125,
+      "endTime": 7.25,
+      "duration": 0.125
+    },
+    {
+      "word": "gravity",
+      "startTime": 7.25,
+      "endTime": 8.417,
+      "duration": 1.167
+    },
+    {
+      "word": "His",
+      "startTime": 8.417,
+      "endTime": 8.605,
+      "duration": 0.188
+    },
+    {
+      "word": "equation",
+      "startTime": 8.605,
+      "endTime": 9.23,
+      "duration": 0.625
+    },
+    {
+      "word": "E=mc²",
+      "startTime": 9.23,
+      "endTime": 10.492,
+      "duration": 1.262
+    },
+    {
+      "word": "equates",
+      "startTime": 10.492,
+      "endTime": 10.917,
+      "duration": 0.425
+    },
+    {
+      "word": "energy",
+      "startTime": 10.917,
+      "endTime": 11.292,
+      "duration": 0.375
+    },
+    {
+      "word": "and",
+      "startTime": 11.292,
+      "endTime": 11.417,
+      "duration": 0.125
+    },
+    {
+      "word": "mass",
+      "startTime": 11.417,
+      "endTime": 11.942,
+      "duration": 0.525
+    },
+    {
+      "word": "demonstrating",
+      "startTime": 11.942,
+      "endTime": 12.667,
+      "duration": 0.725
+    },
+    {
+      "word": "their",
+      "startTime": 12.667,
+      "endTime": 12.942,
+      "duration": 0.275
+    },
+    {
+      "word": "interchangeability",
+      "startTime": 12.942,
+      "endTime": 14.485,
+      "duration": 1.543
+    },
+    {
+      "word": "Winning",
+      "startTime": 14.485,
+      "endTime": 14.722,
+      "duration": 0.237
+    },
+    {
+      "word": "the",
+      "startTime": 14.722,
+      "endTime": 14.91,
+      "duration": 0.188
+    },
+    {
+      "word": "1921",
+      "startTime": 14.91,
+      "endTime": 15.91,
+      "duration": 1
+    },
+    {
+      "word": "Nobel",
+      "startTime": 15.91,
+      "endTime": 16.222,
+      "duration": 0.312
+    },
+    {
+      "word": "Prize",
+      "startTime": 16.222,
+      "endTime": 16.535,
+      "duration": 0.313
+    },
+    {
+      "word": "in",
+      "startTime": 16.535,
+      "endTime": 16.622,
+      "duration": 0.087
+    },
+    {
+      "word": "Physics",
+      "startTime": 16.622,
+      "endTime": 17.235,
+      "duration": 0.613
+    },
+    {
+      "word": "he",
+      "startTime": 17.235,
+      "endTime": 17.41,
+      "duration": 0.175
+    },
+    {
+      "word": "continued",
+      "startTime": 17.41,
+      "endTime": 17.922,
+      "duration": 0.512
+    },
+    {
+      "word": "making",
+      "startTime": 17.922,
+      "endTime": 18.297,
+      "duration": 0.375
+    },
+    {
+      "word": "influential",
+      "startTime": 18.297,
+      "endTime": 18.847,
+      "duration": 0.55
+    },
+    {
+      "word": "contributions",
+      "startTime": 18.847,
+      "endTime": 19.597,
+      "duration": 0.75
+    },
+    {
+      "word": "in",
+      "startTime": 19.597,
+      "endTime": 19.722,
+      "duration": 0.125
+    },
+    {
+      "word": "quantum",
+      "startTime": 19.722,
+      "endTime": 20.097,
+      "duration": 0.375
+    },
+    {
+      "word": "mechanics",
+      "startTime": 20.097,
+      "endTime": 20.672,
+      "duration": 0.575
+    },
+    {
+      "word": "and",
+      "startTime": 20.672,
+      "endTime": 20.847,
+      "duration": 0.175
+    },
+    {
+      "word": "cosmology",
+      "startTime": 20.847,
+      "endTime": 21.472,
+      "duration": 0.625
+    },
+    {
+      "word": "throughout",
+      "startTime": 21.472,
+      "endTime": 21.847,
+      "duration": 0.375
+    },
+    {
+      "word": "his",
+      "startTime": 21.847,
+      "endTime": 22.035,
+      "duration": 0.188
+    },
+    {
+      "word": "life",
+      "startTime": 22.035,
+      "endTime": 22.335,
+      "duration": 0.3
+    }
+  ],
+  "totalDuration": 22.335
+}
