@@ -42,10 +42,6 @@ const App = () => {
 const ProtectedRoute = ({ children }) => {
   const { user } = useContext(AppContext);
 
-  if (user === null) {
-    return <div>Loading...</div>;
-  }
-
   return user ? children : <Navigate to="/" />;
 };
 

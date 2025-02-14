@@ -18,30 +18,28 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-@keyframes fly-diagonal {
+@keyframes fly-horizontal {
   0% {
     left: -100px;
-    bottom: -100px;
     transform: scale(0.5) rotate(0deg);
     opacity: 1;
   }
   50% {
-    transform: scale(2) rotate(10deg);
+    transform: scale(1.2) rotate(5deg);
   }
   100% {
     left: 100vw;
-    bottom: 100vh;
-    transform: scale(0.5) rotate(-10deg);
+    transform: scale(0.5) rotate(-5deg);
     opacity: 1;
   }
 }
 
 .genie-fly-animation {
   position: fixed;
-  bottom: -100px;
+  bottom: 35%;
   left: -100px;
   width: 150px;
-  animation: fly-diagonal 4s ease-in-out forwards infinite;
+  animation: fly-horizontal 4s ease-in-out forwards infinite;
   z-index: 50;
 }
 

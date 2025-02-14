@@ -8,6 +8,7 @@ import AWS from 'aws-sdk'
 import ffmpeg from 'fluent-ffmpeg'
 import ffmpegpath from 'ffmpeg-static'
 import ffprobePath from 'ffprobe-static'
+import { uploadOnCloudinary } from '../utils/cloudinary.js';
 
 async function scrapeWebsite(url) {
     const browser = await puppeteer.launch({ headless: "new" });
@@ -328,7 +329,11 @@ ffmpeg.setFfprobePath(ffprobePath.path)
 
 const buildVideo = async (req, res) => {
     try {
-        const dir = 'E:\\Sarre Programs\\SmartGenie\\server\\stories\\agwqhdwm74obivk';
+        const {dir} = req.query;
+        console.log(dir)
+        if (!dir) { 
+            res.status(500).json({ success: false, message: "something wrong on our side for video creation" });
+        }
     
         const images = ['image-1.png', 'image-2.png', 'image-3.png'];
         const audio = ['voice-1.mp3', 'voice-2.mp3', 'voice-3.mp3'];
@@ -390,7 +395,19 @@ const buildVideo = async (req, res) => {
         });
 
         console.log('done');
-        res.status(200).json({ success: true});
+
+        const cloudinaryResponse = await uploadOnCloudinary(path.join(dir, 'final.mp4'));
+        
+        fs.rmSync(dir, {recursive: true, force: true})
+
+        if(!cloudinaryResponse) {
+            res.status(400).json({success: false, message: "error in uploading in cloudinary"})
+        }
+
+        const videoUrl = cloudinaryResponse.url;
+        console.log("uploading on cloudinary done!");
+
+        res.status(200).json({ success: true, videoUrl});
     } catch (error) {
         console.error('Error building video:', error);
         res.status(500).json({

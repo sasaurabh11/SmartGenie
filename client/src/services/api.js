@@ -77,3 +77,27 @@ export const verifyRazor = async (data, token) => {
         return error.response.data
     }
 }
+
+export const generateAssestsForVideo = async (URI) => {
+    try {
+        const response = await axios.post(`${url}/api/v1/website/summarize?url=${URI}`);
+        return response.data
+    } catch (error) {
+        console.error('error in assestsGeneration API', error.message)
+        return error.response.data
+    }
+}
+
+export const prepareVideo = async (path) => {
+    try {
+        console.log("path", path)
+        const encodedPath = encodeURIComponent(path.storiesDir);
+        console.log(`${url}/api/v1/website/build-video/?dir=${encodedPath}`)
+        const response = await axios.get(`${url}/api/v1/website/build-video/?dir=${encodedPath}`);
+
+        return response.data
+    } catch (error) {
+        console.error('error in videoGeneration API', error.message)
+        return error.response.data
+    }
+}
