@@ -11,11 +11,9 @@ import ffprobePath from 'ffprobe-static'
 import { uploadOnCloudinary } from '../utils/cloudinary.js';
 
 async function scrapeWebsite(url) {
-    const browser = await puppeteer.launch({ headless: "new",
-          executablePath:
-            process.env.NODE_ENV === "production"
-              ? process.env.PUPPETEER_EXECUTABLE_PATH
-              : puppeteer.executablePath(),
+    const browser = await puppeteer.launch({ 
+        headless: "new",
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: "domcontentloaded" });
