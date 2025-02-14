@@ -44,6 +44,11 @@ const Header = () => {
         <img className="h-6" src={starGroup} alt="" />
       </button>
 
+      <button onClick={() => navigate('/summarize')} className="sm:text-lg w-auto mt-8 px-12 py-2.5 flex items-center gap-2 rounded-full bg-pink-400 text-blue-900 cursor-pointer hover:scale-105 transition-all duration-500">
+      Summarise Url
+      <img className="h-6" src={starGroup} alt="" />
+    </button>
+
       <div className="flex flex-wrap justify-center mt-16 gap-3">
         {[ginie1, ginie2, ginie3, ginie4, ginie5, ginie6].map((src, index) => (
           <img
