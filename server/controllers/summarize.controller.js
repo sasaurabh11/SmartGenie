@@ -12,12 +12,6 @@ import { uploadOnCloudinary } from '../utils/cloudinary.js';
 
 async function scrapeWebsite(url) {
     const browser = await puppeteer.launch({ headless: "new",
-        args: [
-            "--disable-setuid-sandbox",
-            "--no-sandbox",
-            "--single-process",
-            "--no-zygote",
-          ],
           executablePath:
             process.env.NODE_ENV === "production"
               ? process.env.PUPPETEER_EXECUTABLE_PATH
@@ -276,6 +270,7 @@ async function saveStoriesToFile(stories, images, url) {
 const summarize = async (req, res) => {
     try {
         const url = decodeURIComponent(req.query.url);
+        console.log("got")
         if (!url) {
             return res.status(400).json({ success: false, message: "URL is required" });
         }
