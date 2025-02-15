@@ -1,29 +1,32 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { FaPlay } from "react-icons/fa";
-import { generateAssestsForVideo, prepareVideo } from "../services/api";
 import genieAnimation from "../assets/ginei-animation1.gif";
 import { toast } from "react-toastify";
+import { AppContext } from "../context/AppContext";
 
 const VideoSummarize = () => {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState("");
   const [videoUrl, setVideoUrl] = useState(null);
 
+  const { generatecontentsForVideo, prepareVideoFromAssets } = useContext(AppContext);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       setLoading("Generating assets...");
-      const path = await generateAssestsForVideo(url);
+      const path = await generatecontentsForVideo(url);
 
-      setLoading("Preparing Video...");
-      const video = await prepareVideo(path);
+      if(path) {
+        setLoading("Preparing Video...");
+        const video = await prepareVideoFromAssets(path);
 
-      setVideoUrl(video.videoUrl);
+        setVideoUrl(video);
+      }
       setLoading("");
     } catch (error) {
       console.error(error.message);
-      toast.error(error.message);
     }
   };
 
@@ -64,7 +67,10 @@ const VideoSummarize = () => {
             <input
               className="border-2 border-cyan-400 bg-transparent px-4 py-3 w-full sm:flex-1 rounded-full text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-300"
               value={url}
-              onChange={(e) => setUrl(e.target.value)}
+              onChange={(e) => {
+                setUrl(e.target.value);
+                setVideoUrl(null);
+              }}
               type="url"
               placeholder="https://..."
             />

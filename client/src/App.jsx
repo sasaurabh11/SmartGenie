@@ -30,7 +30,14 @@ const App = () => {
           }
         />
         <Route path="/buy-credit" element={<BuyCredit />} />
-        <Route path="/summarize" element={<VideoSummarize />}/>
+        <Route
+          path="/summarize"
+          element={
+            <ProtectedRoute>
+              <VideoSummarize />
+            </ProtectedRoute>
+          }
+        />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </div>

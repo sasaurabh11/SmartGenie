@@ -9,6 +9,7 @@ import ffmpeg from 'fluent-ffmpeg'
 import ffmpegpath from 'ffmpeg-static'
 import ffprobePath from 'ffprobe-static'
 import { uploadOnCloudinary } from '../utils/cloudinary.js';
+import userModel from '../models/user.model.js';
 
 async function scrapeWebsite(url) {
     const browser = await puppeteer.launch({ headless: "new",
@@ -35,9 +36,7 @@ async function scrapeWebsite(url) {
 async function summarizeText(text) {
     const API_TOKEN = process.env.HUGGINGFACE_API_KEY;
     
-    const prompt = `Create a direct, clear narrative summary of the following text in exactly 50 words. 
-    Present it as a standalone story without any introductory phrases like "here's" or "let me try". 
-    Focus on the key information in an engaging, story-like format. Use natural, human-friendly language:
+    const prompt = `You are an expert storyteller. Summarize the following text in exactly 50 words as a seamless, engaging short story.Start directly with the story—no introductions, summaries, titles, phrases like "Here’s", "Goes:", "Summary:", "Revised version:", or any meta-language. Write in a natural, human-like tone with smooth flow. End naturally with a period:
 
     ${text}
 
@@ -69,9 +68,7 @@ async function summarizeText(text) {
         if (Array.isArray(response.data) && response.data.length > 0) {
             let summary = response.data[0].generated_text
                 .trim()
-                .replace(/^(Here'?s?\s*(an?|my)?\s*(example|try|attempt|summary)?:?\s*)/i, '')
-                .replace(/^Let me\s*(try|summarize|summarise)?:?\s*/i, '')
-                .replace(/^I'll\s*(try|summarize|summarise)?:?\s*/i, '')
+                .replace(/^(Goes:|The revised version:|Summary:|Here's\s*(an?|my)?\s*(example|try|attempt|summary)?:?|Let me\s*(try|summarize)?:?|I'll\s*(try|summarize)?:?)/i, '')
                 .replace(/\n+/g, ' ')
                 .replace(/\s+/g, ' ')
                 .trim();
@@ -130,7 +127,7 @@ async function generateImages(prompt) {
                 Authorization: `Bearer ${API_TOKEN}`,
             },
             data: { 
-                inputs: prompt 
+                inputs: `${prompt}, hyper-realistic, cinematic lighting, soft shadows, high-definition quality, sharp focus, intricate textures, photorealistic skin tones, natural lighting, shallow depth of field, vibrant color contrast, detailed background, professional photography quality`
             },
             responseType: 'arraybuffer',
             timeout: 60000,
@@ -274,11 +271,17 @@ async function saveStoriesToFile(stories, images, url) {
 }
 
 const summarize = async (req, res) => {
-    try {
-        const url = decodeURIComponent(req.query.url);
-        console.log("got")
-        if (!url) {
-            return res.status(400).json({ success: false, message: "URL is required" });
+    try {        
+        const {userId, url} = req.body;
+
+        const user = await userModel.findById(userId);
+
+        if (!user || !url) {
+            return res.status(400).json({ success: false, message: "Missing details" });
+        }
+
+        if(user.creditBalance < 2 || userModel.creditBalance < 0) {
+            return res.status(400).json({success : false, message : "Insufficient credits", creditBalance : user.creditBalance});
         }
 
         const scrapedText = await scrapeWebsite(url);
@@ -341,10 +344,17 @@ ffmpeg.setFfprobePath(ffprobePath.path)
 
 const buildVideo = async (req, res) => {
     try {
-        const {dir} = req.query;
+        const {userId, dir} = req.body;
         console.log(dir)
-        if (!dir) { 
+
+        const user = await userModel.findById(userId);
+
+        if (!dir || !user) { 
             res.status(500).json({ success: false, message: "something wrong on our side for video creation" });
+        }
+
+        if(user.creditBalance < 2 || userModel.creditBalance < 0) {
+            return res.status(400).json({success : false, message : "Insufficient credits", creditBalance : user.creditBalance});
         }
     
         const images = ['image-1.png', 'image-2.png', 'image-3.png'];
@@ -432,7 +442,9 @@ const buildVideo = async (req, res) => {
         const videoUrl = cloudinaryResponse.url;
         console.log("uploading on cloudinary done!");
 
-        res.status(200).json({ success: true, videoUrl});
+        await userModel.findByIdAndUpdate(user._id, {creditBalance : user.creditBalance - 2});
+
+        res.status(200).json({ success: true, videoUrl, creditBalance : user.creditBalance - 2});
     } catch (error) {
         console.error('Error building video:', error);
         res.status(500).json({
