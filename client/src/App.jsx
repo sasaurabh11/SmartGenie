@@ -14,35 +14,38 @@ const App = () => {
   const { showLogin, user } = useContext(AppContext);
   return (
     <>
-    <div className="px-4 sm:px-10 md:px-14 lg:px-28 min-h-screen bg-gradient-to-b from-[#3d3041] via-[#4a374e] to-[#432d44]">
-      <ToastContainer position="bottom-right" />
-      <Navbar />
+      <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#3d3041] via-[#4a374e] to-[#432d44]">
+        <ToastContainer position="bottom-right" />
+        <Navbar />
+        
+        <div className="flex-grow">
+          {showLogin && <Login />}
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route
+              path="/result"
+              element={
+                <ProtectedRoute>
+                  <Result />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/buy-credit" element={<BuyCredit />} />
+            <Route
+              path="/summarize"
+              element={
+                <ProtectedRoute>
+                  <VideoSummarize />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </div>
 
-      {showLogin && <Login />}
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route
-          path="/result"
-          element={
-            <ProtectedRoute>
-              <Result />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/buy-credit" element={<BuyCredit />} />
-        <Route
-          path="/summarize"
-          element={
-            <ProtectedRoute>
-              <VideoSummarize />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-    </div>
-      <Footer />
-      </>
+        <Footer />
+      </div>
+    </>
   );
 };
 

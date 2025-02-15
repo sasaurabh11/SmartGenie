@@ -44,7 +44,7 @@ const Result = () => {
 
       <div>
         <div className="relative">
-          <img src={image} alt="" className="max-w-sm rounded" />
+          <img src={image} alt="" className="max-w-sm rounded object-cover shadow-2xl" />
         </div>
       </div>
 

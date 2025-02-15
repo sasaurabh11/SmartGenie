@@ -9,6 +9,8 @@ import ginie5 from "../assets/ginie-image5.jpg";
 import ginie6 from "../assets/ginie-image6.jpg";
 import { AppContext } from "../context/AppContext";
 import { useNavigate } from "react-router-dom";
+import premiumIcon from "../assets/premium-icon.png";
+import TypewriterComponent from 'typewriter-effect'
 
 const Header = () => {
   const { user, setShowLogin } = useContext(AppContext);
@@ -36,11 +38,22 @@ const Header = () => {
         <img src={startIcon} alt="" />
       </div>
 
-      <h1 className="text-4xl max-w-[600px] mx-auto mt-10 text-center">
-        Turn Your Imagination Into{" "}
-        <span className="text-yellow-300">Image</span>, and{" "}
-        <span className="text-yellow-300">Summarize</span> your website
-      </h1>
+      <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl mt-5 font-extrabold">
+        <h1>The Best Genie for</h1>
+        <div className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
+          <TypewriterComponent
+            options={{
+              strings: [
+                "Image Generation",
+                "Website Summarize",
+                "Chatbot",
+              ],
+              autoStart: true,
+              loop: true,
+            }}
+          />
+        </div>
+      </div>
 
       <p className="text-center max-w-xl mx-auto mt-5">
         Unleash your creativity with SmartGenie. Turn your Imagination into
@@ -48,8 +61,13 @@ const Header = () => {
       </p>
 
       <div className="flex flex-col justify-center items-center mt-10">
-        <div className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600 tracking-wide">
-          Premium Features
+        <div className="flex items-center gap-1 sm:gap-3 text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600 tracking-wide">
+          <span>Premium Features</span>
+          <img
+            src={premiumIcon}
+            alt=""
+            className="w-8 h-8 sm:w-10 sm:h-10 animate-pulse drop-shadow-lg"
+          />
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4">

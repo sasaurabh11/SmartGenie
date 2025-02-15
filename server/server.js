@@ -5,6 +5,7 @@ import connectDB from './db/index.js';
 import userRouter from './routes/user.routes.js';
 import imageRouter from './routes/image.routes.js';
 import summarizeRouter from './routes/summarize.routes.js';
+import chatRouter from './routes/chat.router.js';
 import { fal } from "@fal-ai/client";
 
 const PORT = process.env.PORT || 5000;
@@ -24,6 +25,7 @@ app.use(express.static('stories'));
 app.use('/api/v1/user', userRouter);
 app.use('/api/v1/image', imageRouter);
 app.use('/api/v1/website', summarizeRouter);
+app.use('/api/v1/chat', chatRouter);
 
 app.get('/', (req, res) => {
     res.send("App started");

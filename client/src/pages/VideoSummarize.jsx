@@ -1,15 +1,16 @@
 import React, { useContext, useState } from "react";
 import { FaPlay } from "react-icons/fa";
 import genieAnimation from "../assets/ginei-animation1.gif";
-import { toast } from "react-toastify";
 import { AppContext } from "../context/AppContext";
+import sampleImage from "../assets/ginie-image1.jpg";
 
 const VideoSummarize = () => {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState("");
   const [videoUrl, setVideoUrl] = useState(null);
 
-  const { generatecontentsForVideo, prepareVideoFromAssets } = useContext(AppContext);
+  const { generatecontentsForVideo, prepareVideoFromAssets } =
+    useContext(AppContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,7 +19,7 @@ const VideoSummarize = () => {
       setLoading("Generating assets...");
       const path = await generatecontentsForVideo(url);
 
-      if(path) {
+      if (path) {
         setLoading("Preparing Video...");
         const video = await prepareVideoFromAssets(path);
 
@@ -90,10 +91,15 @@ const VideoSummarize = () => {
               Your browser does not support the video tag.
             </video>
           ) : (
-            <div className="w-64 sm:w-72 md:w-80 lg:w-96 h-64 sm:h-72 md:h-80 lg:h-96 bg-gray-700 rounded-2xl flex items-center justify-center shadow-inner border-4 border-gray-600">
-              <p className="text-gray-400 text-sm sm:text-base md:text-lg">
+            <div className="w-64 sm:w-72 md:w-80 lg:w-96 h-64 sm:h-72 md:h-80 lg:h-96 bg-gray-700 rounded-2xl flex flex-col gap-10 items-center justify-center shadow-inner border-4 border-gray-600">
+              <p className="text-gray-400 text-sm sm:text-base md:text-lg font-bold">
                 Video Preview
               </p>
+              <img
+                src={sampleImage}
+                alt="Video Preview"
+                className="w-40 sm:w-52 md:w-64 lg:w-72 max-h-40 sm:max-h-52 md:max-h-64 lg:max-h-72 rounded-xl object-cover shadow-2xl transition-all transform hover:scale-105 hover:rotate-3 hover:border-pink-500 hover:border-8"
+              />
             </div>
           )}
         </div>
