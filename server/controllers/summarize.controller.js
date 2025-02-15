@@ -62,7 +62,7 @@ async function summarizeText(text) {
                     "Authorization": `Bearer ${API_TOKEN}`,
                     "Content-Type": "application/json",
                 },
-                timeout: 30000
+                timeout: 60000
             }
         );
 
@@ -377,20 +377,27 @@ const buildVideo = async (req, res) => {
 
             const outputVideo = path.join(dir, `output-${i + 1}.mp4`);
             await new Promise((resolve, reject) => {
-            ffmpeg()
-                .input(inputImage)
-                .loop(duration)
-                .input(inputAudio)
-                .audioCodec('copy')
-                .videoFilter(drawtextFilter)
-                .outputOptions('-t', duration)
-                .on('error', e => {
-                console.error(e);
-                reject(e);
-                })
-                .on('end', resolve)
-                .save(outputVideo);
-            });
+                ffmpeg()
+                    .input(inputImage)
+                    .loop(duration)
+                    .input(inputAudio)
+                    .audioCodec('copy')
+                    .videoFilter(drawtextFilter)
+                    .outputOptions([
+                        '-t', duration,
+                        '-preset', 'ultrafast',
+                        '-vcodec', 'libx264', 
+                        '-crf', '28', 
+                        '-r', '24',  
+                        '-s', '1280x720' 
+                    ])
+                    .on('error', e => {
+                        console.error(e);
+                        reject(e);
+                    })
+                    .on('end', resolve)
+                    .save(outputVideo);
+                });
 
             console.log(`${outputVideo} is complete`);
         }
@@ -401,6 +408,12 @@ const buildVideo = async (req, res) => {
             .input(path.join(dir, 'output-1.mp4'))
             .input(path.join(dir, 'output-2.mp4'))
             .input(path.join(dir, 'output-3.mp4'))
+            .outputOptions([
+                '-preset', 'ultrafast',
+                '-crf', '28',
+                '-r', '24',
+                '-s', '1280x720'
+            ])
             .on('end', resolve)
             .on('error', reject)
             .mergeToFile(path.join(dir, 'final.mp4'));
