@@ -8,6 +8,7 @@ import Footer from "./components/Footer";
 import Login from "./components/Login";
 import { AppContext } from "./context/AppContext";
 import { ToastContainer } from "react-toastify";
+import VideoSummarize from "./pages/VideoSummarize";
 
 const App = () => {
   const { showLogin, user } = useContext(AppContext);
@@ -29,6 +30,15 @@ const App = () => {
           }
         />
         <Route path="/buy-credit" element={<BuyCredit />} />
+        <Route
+          path="/summarize"
+          element={
+            <ProtectedRoute>
+              <VideoSummarize />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </div>
       <Footer />
@@ -38,10 +48,6 @@ const App = () => {
 
 const ProtectedRoute = ({ children }) => {
   const { user } = useContext(AppContext);
-
-  if (user === null) {
-    return <div>Loading...</div>;
-  }
 
   return user ? children : <Navigate to="/" />;
 };

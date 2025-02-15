@@ -1,5 +1,5 @@
 import { createContext, useEffect, useState } from "react";
-import { generateImageApi, loadCreditsData } from "../services/api";
+import { generateAssestsForVideo, generateImageApi, loadCreditsData, prepareVideo } from "../services/api";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
@@ -52,6 +52,50 @@ const AppContextProvider = (props) => {
         }
     }
 
+    const generatecontentsForVideo = async (url) => {
+        try {
+            const response = await generateAssestsForVideo(url, token);
+    
+            if(response && response.success) {
+                loadCreditsBalance();
+                return response;
+             }
+             else {
+                toast.error(response.message);
+                loadCreditsBalance();
+
+                if(response.creditBalance < 2) {
+                    navigate('/buy-credit')
+                }
+             }
+        } catch (error) {
+            console.error(error.message)
+            toast.error(error.message)            
+        }
+    }
+
+    const prepareVideoFromAssets = async (path) => {
+        try {
+            
+            const response = await prepareVideo(path, token)
+            if(response && response.success) {
+                loadCreditsBalance()
+                return response.videoUrl
+            } else {
+                toast.error(response.message)
+                loadCreditsBalance()
+
+                if(response.creditBalance === 0) {
+                    navigate('/buy-credit')
+                }
+            }
+
+        } catch (error) {
+            console.error(error.message)
+            toast.error(error.message)
+        }
+     }
+
     const logout = () => {
         setToken('')
         setUser(null)
@@ -71,7 +115,8 @@ const AppContextProvider = (props) => {
         credit, setCredit,
         loadCreditsBalance,
         logout,
-        generateImage
+        generateImage,
+        generatecontentsForVideo, prepareVideoFromAssets
     }
 
     return (

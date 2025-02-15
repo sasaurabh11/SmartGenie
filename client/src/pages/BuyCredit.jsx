@@ -4,7 +4,7 @@ import logoIcon from "../assets/ginie-image.jpg";
 import { AppContext } from "../context/AppContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { paymentGateway } from "../services/api";
+import { loadCreditsData, paymentGateway, verifyRazor } from "../services/api";
 
 const BuyCredit = () => {
   const { user, loadCreditsBalance, token, setShowLogin } = useContext(AppContext);
@@ -12,21 +12,34 @@ const BuyCredit = () => {
   const navigate = useNavigate();
 
   const initPay = async (order) => {
-    const options = {
-      key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-      amount: order.amount,
-      currency: order.currency,
-      name: 'Credits Payment',
-      description: 'Credits Payment',
-      order_id: order.id,
-      receipt: order.receipt,
-      handler : async (response) => {
-        console.log(response);
-      }
-    }
+    try {
+      console.log("Razorpay Key:", import.meta.env.VITE_RAZORPAY_KEY_ID);
 
-    const rzp = new window.Razorpay(options);
-    rzp.open();
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: order.currency,
+        name: 'Credits Payment',
+        description: 'Credits Payment',
+        order_id: order.id,
+        receipt: order.receipt,
+        handler : async (response) => {
+          const data = await verifyRazor(response, token);
+
+          if(data.success) {
+            loadCreditsBalance();
+            navigate('/')
+            toast.success("Credit Added")
+          }
+        }
+      }
+  
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (error) {
+      console.error("error in payment intialization", error.message);
+      toast.error(error.message)
+    }
   } 
   
   const paymentHandler = async (planId) => {

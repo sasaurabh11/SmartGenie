@@ -4,6 +4,7 @@ import "dotenv/config";
 import connectDB from './db/index.js';
 import userRouter from './routes/user.routes.js';
 import imageRouter from './routes/image.routes.js';
+import summarizeRouter from './routes/summarize.routes.js';
 import { fal } from "@fal-ai/client";
 
 const PORT = process.env.PORT || 5000;
@@ -18,9 +19,12 @@ app.use(cors({
     origin: [process.env.CORS_ORIGIN],
     credentials: true
 }))
+app.use(express.static('stories'));
 
 app.use('/api/v1/user', userRouter);
 app.use('/api/v1/image', imageRouter);
+app.use('/api/v1/website', summarizeRouter);
+
 app.get('/', (req, res) => {
     res.send("App started");
 })
