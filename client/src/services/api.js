@@ -97,3 +97,14 @@ export const prepareVideo = async (path, token) => {
         return error.response.data
     }
 }
+
+export const callChat = async (data) => {
+    try {
+        console.log("data", data)
+        const response = await axios.post(`${url}/api/v1/chat`, {question: data});
+        return response.data
+    } catch (error) {
+        console.error('error in chatbot API', error.message)
+        return error.response.data.message
+    }
+ }

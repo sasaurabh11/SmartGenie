@@ -1,27 +1,25 @@
 import axios from 'axios'
+import { GoogleGenerativeAI } from "@google/generative-ai"
+
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
 const chatController = async (req, res) => {
     try {
-        const {question} = req.body;
+        const { question } = req.body;
 
-        if(!question) {
-            res.status(400).json({success : false, message : "Question is required"});
+        if (!question) {
+            return res.status(400).json({ success: false, message: "Question is required" });
         }
 
-        const response = await axios.post(
-            'https://api-inference.huggingface.co/models/meta-llama/Llama-3.3-70B-Instruct',
-            {inputs: question},
-            {
-                headers: {
-                    Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`
-                }
-            }
-        )
+        const chat = model.startChat();
+        const response = await chat.sendMessage(question);
 
-        const result = response.data;
-        console.log(result);
+        console.log("response", response);
 
-        res.status(200).json({success: true, answer: result[0].generated_text});
+        const answer = response.response?.candidates?.[0]?.content?.parts?.[0]?.text || "No response generated.";
+
+        res.status(200).json({ success: true, answer });
 
     } catch (error) {
         console.error("error in chatController", error);

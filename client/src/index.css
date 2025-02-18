@@ -58,3 +58,11 @@
   75% { opacity: 1; }
   100% { opacity: 0; }
 }
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  scrollbar-width: none;
+}

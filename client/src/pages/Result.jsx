@@ -54,7 +54,7 @@ const Result = () => {
             onChange={(e) => setInput(e.target.value)}
             value={input}
             type="text"
-            placeholder="Describe what you want to generate"
+            placeholder="Describe SmartGenie to what you want to generate"
             className="flex-1 bg-transparent outline-none ml-8 max-sm:w-20 text-black
       "
           />

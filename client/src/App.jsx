@@ -9,6 +9,7 @@ import Login from "./components/Login";
 import { AppContext } from "./context/AppContext";
 import { ToastContainer } from "react-toastify";
 import VideoSummarize from "./pages/VideoSummarize";
+import ChatBot from "./pages/ChatBot";
 
 const App = () => {
   const { showLogin, user } = useContext(AppContext);
@@ -39,6 +40,7 @@ const App = () => {
                 </ProtectedRoute>
               }
             />
+            <Route path="/chat" element={<ChatBot />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </div>
