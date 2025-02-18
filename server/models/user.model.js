@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema({
     },
     creditBalance: {
         type : Number,
-        default : 3,
+        default : 6,
     },
 }, {timestamps : true});
 
