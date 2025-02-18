@@ -31,8 +31,6 @@ const AppContextProvider = (props) => {
     const generateImage = async (prompt) => {
         try {
             const response = await generateImageApi(prompt, token)
-
-            console.log('response in context', response)
             
             if(response && response.success) {
                 loadCreditsBalance()

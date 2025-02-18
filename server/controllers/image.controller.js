@@ -70,8 +70,6 @@ const generateImage = async (req, res) => {
             return res.status(500).json({ success: false, message: "Failed to generate image" });
         }
         const imageUrl = result.data.images[0].url;
-        console.log(result.data);
-        console.log(result.requestId);
 
         await userModel.findByIdAndUpdate(user._id, {creditBalance : user.creditBalance - 1});
 

@@ -26,7 +26,6 @@ const Login = () => {
         };
 
         const response = await loginUser(data);
-        console.log("response", response);
 
         if (response.success) {
           setToken(response.token);

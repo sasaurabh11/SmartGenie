@@ -18,7 +18,6 @@ const registerUser = async (req, res) => {
         }
 
         const salt = await bcrypt.genSalt(10);
-        console.log(salt)
         const hashedPassword = await bcrypt.hash(password, salt);
 
         const userData = {
@@ -91,8 +90,6 @@ const paymentRazorpay = async (req, res) => {
     try {
 
         const {userId, planId} = req.body;
-
-        console.log(userId, planId);
 
         const userData = await userModel.findById(userId);
         if(!userData || !planId) {

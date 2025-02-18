@@ -15,8 +15,6 @@ const chatController = async (req, res) => {
         const chat = model.startChat();
         const response = await chat.sendMessage(question);
 
-        console.log("response", response);
-
         const answer = response.response?.candidates?.[0]?.content?.parts?.[0]?.text || "No response generated.";
 
         res.status(200).json({ success: true, answer });

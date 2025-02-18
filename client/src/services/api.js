@@ -15,7 +15,6 @@ export const loginUser = async (data) => {
 export const signupUser = async (data) => {
     try {
         const response = await axios.post(`${url}/api/v1/user/register`, data);
-        console.log('response', response)
         return response.data;
     } catch (error) {
         console.error('error in addUser API', error.message)
@@ -25,7 +24,6 @@ export const signupUser = async (data) => {
 
 export const loadCreditsData = async (token) => {
     try {
-        console.log('token', token)
         const response = await axios.get(`${url}/api/v1/user/credits`, {
             headers: {
                 token
@@ -46,7 +44,6 @@ export const generateImageApi = async (prompt, token) => {
                 token
             }
         });
-        console.log('response', response.data)
         return response.data;
     } catch (error) {
         console.error('error in generateImage API', error.message)
@@ -100,7 +97,6 @@ export const prepareVideo = async (path, token) => {
 
 export const callChat = async (data) => {
     try {
-        console.log("data", data)
         const response = await axios.post(`${url}/api/v1/chat`, {question: data});
         return response.data
     } catch (error) {
