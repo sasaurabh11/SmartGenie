@@ -35,8 +35,12 @@ const Header = () => {
   };
 
   const handleEnter = () => {
-    if (input.trim()) {
-      navigate("/chat", { state: { input } });
+    if(user) {
+      if (input.trim()) {
+        navigate("/chat", { state: { input } });
+      }
+    } else {
+      setShowLogin(true);
     }
   };
 

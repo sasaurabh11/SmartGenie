@@ -40,7 +40,11 @@ const App = () => {
                 </ProtectedRoute>
               }
             />
-            <Route path="/chat" element={<ChatBot />} />
+            <Route path="/chat" element={
+              <ProtectedRoute>
+                <ChatBot />
+              </ProtectedRoute>
+            } />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </div>
