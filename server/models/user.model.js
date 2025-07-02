@@ -18,7 +18,6 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, "please provide a password"],
         minlength: 6,
-        select: false
     },
     creditBalance: {
         type : Number,

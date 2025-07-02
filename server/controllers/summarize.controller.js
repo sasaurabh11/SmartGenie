@@ -10,9 +10,10 @@ import ffmpegpath from 'ffmpeg-static'
 import ffprobePath from 'ffprobe-static'
 import { uploadOnCloudinary } from '../utils/cloudinary.js';
 import userModel from '../models/user.model.js';
+import { GoogleGenAI } from "@google/genai";
 
 async function scrapeWebsite(url) {
-    const browser = await puppeteer.launch({ headless: "new",
+    const browser = await puppeteer.launch({ headless: false,
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
@@ -34,84 +35,105 @@ async function scrapeWebsite(url) {
 }
 
 async function summarizeText(text) {
-    const API_TOKEN = process.env.HUGGINGFACE_API_KEY;
+    const API_KEY = process.env.GOOGLE_API_KEY;
     
-    const prompt = `You are an expert storyteller. Summarize the following text in exactly 50 words as a seamless, engaging short story.Start directly with the story—no introductions, summaries, titles, phrases like "Here’s", "Goes:", "Summary:", "Revised version:", or any meta-language. Write in a natural, human-like tone with smooth flow. End naturally with a period:
+    if (!API_KEY) {
+        throw new Error('GOOGLE_API_KEY environment variable is required');
+    }
+    
+    const prompt = `Transform the following text into a compelling 50-word story. Write as if you're telling someone an engaging tale - use vivid language, maintain narrative flow, and capture the essence dramatically. 
 
-    ${text}
+Rules:
+- Exactly 50 words or fewer
+- Start immediately with the story (no preambles)
+- Write in third person or narrative style
+- Include the most crucial elements
+- End with proper punctuation
+- Make it read like a mini-story, not a summary
 
-    Remember: The summary must be exactly 50 words or less while maintaining a natural flow and including key information.`;
+Text to transform:
+${text}
+
+Story:`;
 
     try {
-        const response = await axios.post(
-            "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3",
-            {
-                inputs: prompt,
-                parameters: {
-                    max_new_tokens: 100,
-                    temperature: 0.6,
-                    top_p: 0.85,
-                    do_sample: true,
-                    return_full_text: false,
-                    repetition_penalty: 1.2
-                }
-            },
-            {
-                headers: {
-                    "Authorization": `Bearer ${API_TOKEN}`,
-                    "Content-Type": "application/json",
-                },
-                timeout: 60000
-            }
-        );
 
-        if (Array.isArray(response.data) && response.data.length > 0) {
-            let summary = response.data[0].generated_text
-                .trim()
-                .replace(/^(Goes:|The revised version:|Summary:|Here's\s*(an?|my)?\s*(example|try|attempt|summary)?:?|Let me\s*(try|summarize)?:?|I'll\s*(try|summarize)?:?)/i, '')
-                .replace(/\n+/g, ' ')
-                .replace(/\s+/g, ' ')
-                .trim();
-            
-            summary = summary.charAt(0).toUpperCase() + summary.slice(1);
-            
-            if (!summary.match(/[.!?]$/)) {
-                summary += '.';
+        const ai = new GoogleGenAI({apiKey: API_KEY});
+
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+            generationConfig: {
+                temperature: 0.7,
+                topP: 0.8,
+                topK: 40,
+                maxOutputTokens: 150,
+                stopSequences: []
             }
+        });
+
+        let summary = response.text;
+
+        summary = summary
+            .trim()
+            .replace(/^(Story:|Here's|This is|Summary:)/i, '')
+            .replace(/\n+/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+        
+        if (summary.length > 0) {
+            summary = summary.charAt(0).toUpperCase() + summary.slice(1);
+        }
+
+        // Ensure proper ending punctuation
+        if (!summary.match(/[.!?]$/)) {
+            summary += '.';
+        }
+
+        // Enforce 50-word limit
+        const words = summary.split(/\s+/);
+        if (words.length > 50) {
+            // Try to cut at sentence boundaries first
+            const sentences = summary.match(/[^.!?]+[.!?]+/g) || [];
+            let truncated = '';
+            let wordCount = 0;
             
-            const words = summary.split(/\s+/);
-            if (words.length > 50) {
-                const sentences = summary.match(/[^.!?]+[.!?]+/g) || [];
-                summary = '';
-                let currentWordCount = 0;
-                
-                for (const sentence of sentences) {
-                    const sentenceWordCount = sentence.trim().split(/\s+/).length;
-                    if (currentWordCount + sentenceWordCount <= 50) {
-                        summary += sentence;
-                        currentWordCount += sentenceWordCount;
-                    } else {
-                        break;
-                    }
+            for (const sentence of sentences) {
+                const sentenceWords = sentence.trim().split(/\s+/).length;
+                if (wordCount + sentenceWords <= 50) {
+                    truncated += sentence;
+                    wordCount += sentenceWords;
+                } else {
+                    break;
                 }
             }
             
-            return summary.trim();
+            // If no complete sentences fit, truncate at word boundary
+            if (truncated.trim().length === 0) {
+                truncated = words.slice(0, 50).join(' ') + '.';
+            }
+            
+            summary = truncated.trim();
         }
-        
-        throw new Error('Invalid response from API');
+
+        return summary;
 
     } catch (error) {
-        if (error.code === 'ECONNABORTED') {
-            throw new Error('Request timed out. Please try again.');
+        console.error('Gemini API Error:', error);
+        
+        if (error.message?.includes('API key')) {
+            throw new Error('Invalid API key. Please check your GOOGLE_GEMINI_API_KEY.');
         }
         
-        if (error.response?.data) {
-            console.error('API Error Response:', JSON.stringify(error.response.data, null, 2));
+        if (error.message?.includes('quota')) {
+            throw new Error('API quota exceeded. Please try again later.');
         }
         
-        throw new Error('Failed to generate summary: ' + 
-            (error.response?.data?.error || error.message));
+        if (error.message?.includes('safety')) {
+            throw new Error('Content was blocked due to safety filters. Please try different text.');
+        }
+        
+        throw new Error(`Failed to generate summary: ${error.message || 'Unknown error'}`);
     }
 }
 
@@ -120,18 +142,20 @@ async function generateImages(prompt) {
     const API_TOKEN = process.env.HUGGINGFACE_API_KEY;
 
     try {
-        const response = await axios({
-            url: API_URL,
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${API_TOKEN}`,
-            },
-            data: { 
+        const response = await axios.post(API_URL, 
+            { 
                 inputs: `${prompt}, hyper-realistic, cinematic lighting, soft shadows, high-definition quality, sharp focus, intricate textures, photorealistic skin tones, natural lighting, shallow depth of field, vibrant color contrast, detailed background, professional photography quality`
             },
-            responseType: 'arraybuffer',
-            timeout: 60000,
-        });
+            {
+                headers: {
+                    'Authorization': `Bearer ${API_TOKEN}`,
+                    'Accept': 'image/png',
+                    'Content-Type': 'application/json'
+                },
+                responseType: 'arraybuffer',
+                timeout: 60000,
+            }
+        );
 
         console.log('Image generated:', response.data.length, 'bytes');
         
@@ -309,8 +333,6 @@ const summarize = async (req, res) => {
                 return await summarizeText(chunk);
             })
         )
-
-        console.log(summarise)
         
         const images = await Promise.all(
             summarise.map( async (summary) => {
