@@ -13,7 +13,7 @@ import userModel from '../models/user.model.js';
 import { GoogleGenAI } from "@google/genai";
 
 async function scrapeWebsite(url) {
-    const browser = await puppeteer.launch({ headless: false,
+    const browser = await puppeteer.launch({ headless: "new",
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
