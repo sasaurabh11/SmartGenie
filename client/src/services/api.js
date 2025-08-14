@@ -104,3 +104,13 @@ export const callChat = async (data) => {
         return error.response.data.message
     }
  }
+
+ export const ragChat = async (question, docId) => {
+    try {
+        const response = await axios.post(`${url}/api/v1/askrag`, {question: question, docId: docId});
+        return response.data
+    } catch (error) {
+        console.error('error in chatbot API', error.message)
+        return error.response.data.message
+    }
+ }

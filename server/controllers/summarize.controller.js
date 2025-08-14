@@ -11,6 +11,10 @@ import ffprobePath from 'ffprobe-static'
 import { uploadOnCloudinary } from '../utils/cloudinary.js';
 import userModel from '../models/user.model.js';
 import { GoogleGenAI } from "@google/genai";
+import { RAGSystem } from '../utils/ragSystem.js';
+
+const rag_system = new RAGSystem();
+await rag_system.init()
 
 async function scrapeWebsite(url) {
     const browser = await puppeteer.launch({ headless: "new",
@@ -310,12 +314,17 @@ const summarize = async (req, res) => {
 
         const scrapedText = await scrapeWebsite(url);
 
+        const docId = `doc_${Buffer.from(url).toString("base64").replace(/=/g, "")}`;
+
+        const chunksAdded = await rag_system.addDocument(docId, scrapedText, { source: url });
+        console.log(`Added ${chunksAdded} chunks to RAG for ${url}`);
+
         //create chunk of scraped data
-        const wordsPerChunk = 5000;
+        const wordsPerChunk = 10000;
         const words = scrapedText.split(" ");
         const chunks = [];
 
-        if(words.length <= 15000) {
+        if(words.length <= 30000) {
             const chunkSize = Math.ceil(words.length / 3);
             for (let i = 0; i < 3; i++) {
                 chunks.push(words.slice(i * chunkSize, (i + 1) * chunkSize).join(" "));
@@ -352,7 +361,8 @@ const summarize = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            storiesDir
+            storiesDir,
+            docId
         });
 
     } catch (error) {

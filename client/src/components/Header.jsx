@@ -11,7 +11,8 @@ import { AppContext } from "../context/AppContext";
 import { useNavigate } from "react-router-dom";
 import premiumIcon from "../assets/premium-icon.png";
 import TypewriterComponent from 'typewriter-effect'
-import { FaArrowUp } from "react-icons/fa";
+import { FaArrowUp, FaMagic, FaSearch, FaStar } from "react-icons/fa";
+import { motion } from "framer-motion";
 
 const Header = () => {
   const { user, setShowLogin } = useContext(AppContext);
@@ -51,25 +52,70 @@ const Header = () => {
     }
   };
 
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        duration: 0.5
+      }
+    }
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const buttonVariants = {
+    hover: {
+      scale: 1.05,
+      boxShadow: "0px 5px 15px rgba(0, 0, 0, 0.1)",
+      transition: {
+        duration: 0.3
+      }
+    },
+    tap: {
+      scale: 0.98
+    }
+  };
+
   return (
-    <div className="flex flex-col justify-center items-center text-center my-20">
+    <motion.div 
+      className="flex flex-col justify-center items-center text-center py-16 px-4"
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
       <div className="text-stone-500 inline-flex text-center gap-2 bg-white px-6 py-1 rounded-full border border-neutral-500">
         <p>Best genie for image generator and website summarize</p>
         <img src={startIcon} alt="" />
       </div>
 
       <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl mt-5 font-extrabold">
-        <h1>The Best Genie for</h1>
+        <h1 className="text-5xl">The Best Genie for</h1>
         <div className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
           <TypewriterComponent
             options={{
               strings: [
                 "Image Generation",
                 "Website Summarize",
-                "Chatbot",
+                "Smart Chatbot",
+                "Creative Ideas"
               ],
               autoStart: true,
               loop: true,
+              deleteSpeed: 50,
+              delay: 70,
+              cursor: "|",
+              cursorClassName: "text-pink-500 text-4xl sm:text-5xl md:text-6xl lg:text-7xl"
             }}
           />
         </div>
@@ -98,48 +144,87 @@ const Header = () => {
         </button>
       </div>
 
-      <div className="flex flex-col justify-center items-center mt-[1.5rem]">
-        <div className="flex items-center gap-1 sm:gap-3 text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600 tracking-wide">
+      <motion.div 
+        variants={containerVariants}
+        className="flex flex-col justify-center items-center mt-12"
+      >
+        <motion.div 
+          variants={itemVariants}
+          className="flex items-center gap-2 text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-600 tracking-tight"
+        >
+          <FaMagic className="text-blue-500" />
           <span>Premium Features</span>
           <img
             src={premiumIcon}
-            alt=""
-            className="w-8 h-8 sm:w-10 sm:h-10 animate-pulse drop-shadow-lg"
+            alt="Premium"
+            className="w-8 h-8 animate-pulse"
           />
-        </div>
+        </motion.div>
 
-        <div className="flex flex-col sm:flex-row gap-4">
-          <button
+        <motion.div 
+          variants={containerVariants}
+          className="flex flex-col sm:flex-row gap-4 mt-6"
+        >
+          <motion.button
             onClick={imageClickHandler}
-            className="sm:text-lg w-auto mt-8 px-12 py-2.5 flex items-center gap-2 rounded-full bg-pink-400 text-blue-900 cursor-pointer hover:scale-105 transition-all duration-500"
+            variants={buttonVariants}
+            whileHover="hover"
+            whileTap="tap"
+            className="text-lg font-medium w-auto px-8 py-3 flex items-center gap-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-white cursor-pointer transition-all duration-300 shadow-md"
           >
+            <FaMagic />
             Generate Images
-            <img className="h-6" src={starGroup} alt="" />
-          </button>
+            <img className="h-5" src={starGroup} alt="" />
+          </motion.button>
 
-          <button
+          <motion.button
             onClick={summarizeClickHandler}
-            className="sm:text-lg w-auto mt-8 px-12 py-2.5 flex items-center gap-2 rounded-full bg-pink-300 text-blue-500 cursor-pointer hover:scale-105 transition-all duration-500"
+            variants={buttonVariants}
+            whileHover="hover"
+            whileTap="tap"
+            className="text-lg font-medium w-auto px-8 py-3 flex items-center gap-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white cursor-pointer transition-all duration-300 shadow-md"
           >
-            Summarise Website
-            <img className="h-6" src={startIcon} alt="" />
-          </button>
-        </div>
-      </div>
+            <FaSearch />
+            Summarize Website
+            <img className="h-5" src={startIcon} alt="" />
+          </motion.button>
+        </motion.div>
+      </motion.div>
 
-      <div className="flex flex-wrap justify-center mt-16 gap-3">
-        {[ginie1, ginie2, ginie3, ginie4, ginie5, ginie6].map((src, index) => (
-          <img
-            key={index}
-            src={src}
-            className="rounded hover:scale-105 transition-all duration-300 cursor-pointer w-20 h-20 object-cover"
-            alt=""
-          />
-        ))}
-      </div>
-
-      <p className="mt-2 text-red-400">Generated Images from SmartGenie</p>
-    </div>
+      <motion.div 
+        variants={containerVariants}
+        className="mt-16 w-full max-w-6xl"
+      >
+        <motion.h3 
+          variants={itemVariants}
+          className="text-xl font-semibold text-gray-700 mb-6"
+        >
+          Generated by SmartGenie
+        </motion.h3>
+        
+        <motion.div 
+          variants={containerVariants}
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 px-4"
+        >
+          {[ginie1, ginie2, ginie3, ginie4, ginie5, ginie6].map((src, index) => (
+            <motion.div
+              key={index}
+              variants={itemVariants}
+              whileHover={{ scale: 1.05, zIndex: 10 }}
+              whileTap={{ scale: 0.95 }}
+              className="rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer"
+            >
+              <img
+                src={src}
+                className="w-full h-32 object-cover hover:brightness-110 transition-all duration-300"
+                alt={`Generated image ${index + 1}`}
+                loading="lazy"
+              />
+            </motion.div>
+          ))}
+        </motion.div>
+      </motion.div>
+    </motion.div>
   );
 };
 

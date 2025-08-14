@@ -11,16 +11,34 @@ const Result = () => {
 
   const { generateImage } = useContext(AppContext);
 
+  const preloadImage = (src) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(src);
+      img.onerror = reject;
+      img.src = src;
+    });
+  };
+
   const onSubmitHandler = async (e) => {
     e.preventDefault();
     setLoading(true);
+    
     if (input) {
-      const image = await generateImage(input);
-      if (image) {
-        setImage(image);
-        setIsImageLoaded(true);
+      try {
+        const imageUrl = await generateImage(input);
+        
+        if (imageUrl) {
+          await preloadImage(imageUrl);
+          
+          setImage(imageUrl);
+          setIsImageLoaded(true);
+        }
+      } catch (error) {
+        console.error("Error generating or loading image:", error);
       }
     }
+    
     setLoading(false);
   };
 
@@ -44,19 +62,22 @@ const Result = () => {
 
       <div>
         <div className="relative">
-          <img src={image} alt="" className="max-w-sm rounded object-cover shadow-2xl" />
+          <img 
+            src={image} 
+            alt="" 
+            className="max-w-sm rounded object-cover shadow-2xl" 
+          />
         </div>
       </div>
 
       {!isImageLoaded ? (
-        <div className="flex w-full max-w-xl bg-neutral-500 text-white text-sm  p-0.5 mt-10 rounded-full">
+        <div className="flex w-full max-w-xl bg-neutral-500 text-white text-sm p-0.5 mt-10 rounded-full">
           <input
             onChange={(e) => setInput(e.target.value)}
             value={input}
             type="text"
             placeholder="Describe SmartGenie to what you want to generate"
-            className="flex-1 bg-transparent outline-none ml-8 max-sm:w-20 text-black
-      "
+            className="flex-1 bg-transparent outline-none ml-8 max-sm:w-20 text-black"
           />
           <button
             type="submit"
