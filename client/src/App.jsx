@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Home from "./pages/Home";
 import Result from "./pages/Result";
 import BuyCredit from "./pages/BuyCredit";
@@ -11,10 +11,22 @@ import { AppContext } from "./context/AppContext";
 import { ToastContainer } from "react-toastify";
 import VideoSummarize from "./pages/VideoSummarize";
 import ChatBot from "./pages/ChatBot";
+import LoadingScreen from "./components/LoadingScreen";
+import Sidebar from "./components/Sidebar";
 
 const App = () => {
-  const { showLogin } = useContext(AppContext);
+  const { showLogin, user } = useContext(AppContext);
   const [cursorPos, setCursorPos] = useState({ x: -100, y: -100 });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate initial loading
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2500);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -24,37 +36,96 @@ const App = () => {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
   return (
     <>
-      {/* Hard Grid Background */}
-      <div className="fixed inset-0 z-[-2] bg-grid-pattern opacity-60"></div>
+      {/* Animated Background */}
+      <div className="fixed inset-0 z-[-3] bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800"></div>
+      
+      {/* Particle Background */}
+      <div className="fixed inset-0 z-[-2] opacity-30">
+        {[...Array(30)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute rounded-full bg-white"
+            style={{
+              width: Math.random() * 10 + 2 + 'px',
+              height: Math.random() * 10 + 2 + 'px',
+              top: Math.random() * 100 + '%',
+              left: Math.random() * 100 + '%',
+            }}
+            animate={{
+              y: [0, -20, 0],
+              opacity: [0, 0.7, 0],
+              scale: [0, 1, 0],
+            }}
+            transition={{
+              duration: Math.random() * 10 + 10,
+              repeat: Infinity,
+              delay: Math.random() * 5,
+            }}
+          />
+        ))}
+      </div>
 
-      {/* Cursor Motion Effect (Smoother Glow) */}
+      {/* Cursor Motion Effect */}
       <motion.div
-        className="fixed top-0 left-0 w-full h-full z-[-1] pointer-events-none"
+        className="fixed top-0 left-0 pointer-events-none z-50"
         style={{
-          position: "fixed",
-          width: "500px",
-          height: "500px",
+          width: "30px",
+          height: "30px",
           borderRadius: "50%",
-          filter: "blur(120px)",
-          background: "radial-gradient(circle, rgba(255, 0, 150, 0.4) 20%, rgba(0, 0, 0, 0.1) 80%)",
+          background: "radial-gradient(circle, rgba(255, 100, 255, 0.4) 0%, rgba(0, 0, 0, 0) 70%)",
           mixBlendMode: "screen",
-          willChange: "transform",
         }}
         animate={{
-          x: cursorPos.x - 250,
-          y: cursorPos.y - 250,
-          transition: { type: "spring", stiffness: 80, damping: 10 },
+          x: cursorPos.x - 15,
+          y: cursorPos.y - 15,
+          transition: { type: "spring", stiffness: 500, damping: 28 },
+        }}
+      />
+      
+      <motion.div
+        className="fixed top-0 left-0 pointer-events-none z-50"
+        style={{
+          width: "8px",
+          height: "8px",
+          borderRadius: "50%",
+          background: "rgba(255, 100, 255, 0.7)",
+        }}
+        animate={{
+          x: cursorPos.x - 4,
+          y: cursorPos.y - 4,
+          transition: { type: "spring", stiffness: 1000, damping: 30 },
         }}
       />
 
       <div className="min-h-screen flex flex-col">
-        <ToastContainer position="bottom-right" />
+        <ToastContainer 
+          position="top-right" 
+          theme="dark"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
+        
         <Navbar />
+        
+        {user && <Sidebar />}
 
-        <div className="flex-grow relative">
-          {showLogin && <Login />}
+        <div className={`flex-grow relative ${user ? 'ml-0 md:ml-20' : ''}`}>
+          <AnimatePresence>
+            {showLogin && <Login />}
+          </AnimatePresence>
+          
           <Routes>
             <Route path="/" element={<Home />} />
             <Route
