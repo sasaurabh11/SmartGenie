@@ -5,8 +5,8 @@ on:
     branches: ["main"]
 
 jobs:
-  build-and-push:
-    runs-on: self-hosted   # or ubuntu-latest if not using your own runner
+  build-and-deploy:
+    runs-on: ubuntu-latest   # GitHub-hosted runner (build happens here)
 
     steps:
       # Checkout repo
@@ -31,9 +31,20 @@ jobs:
           context: ./server
           file: ./server/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/sasaurabh11/smartgenie:v1.0
+          tags: ${{ secrets.DOCKER_USERNAME }}/sasaurabh11/smartgenie:latest
 
-      # Create .env file (if needed inside repo/docker context)
-      - name: Create .env file
-        run: |
-          echo "${{ secrets.PROD_ENV_FILE }}" > ./server/.env
+      # Deploy on EC2
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}   # Your private key
+          script: |
+            docker pull ${{ secrets.DOCKER_USERNAME }}/sasaurabh11/smartgenie:latest
+            docker stop smartgenie || true
+            docker rm smartgenie || true
+            docker run -d --name smartgenie \
+              --env-file /home/ubuntu/.env \
+              -p 80:3000 \
+              ${{ secrets.DOCKER_USERNAME }}/sasaurabh11/smartgenie:latest
