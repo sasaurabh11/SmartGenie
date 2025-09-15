@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest   # GitHub-hosted runner (build happens here)
+    runs-on: ubuntu-latest 
 
     steps:
       # Checkout repo
@@ -31,7 +31,7 @@ jobs:
           context: ./server
           file: ./server/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/sasaurabh11/smartgenie:v1.0
+          tags: ${{ secrets.DOCKER_USERNAME }}/smartgenie:v1.0
 
       # Deploy on EC2
       - name: Deploy to EC2 via SSH
@@ -41,10 +41,10 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}   
           script: |
-            docker pull ${{ secrets.DOCKER_USERNAME }}/sasaurabh11/smartgenie:v1.0
+            docker pull ${{ secrets.DOCKER_USERNAME }}/smartgenie:v1.0
             docker stop smartgenie || true
             docker rm smartgenie || true
             docker run -d --name smartgenie \
               --env-file /home/ubuntu/.env \
               -p 80:3000 \
-              ${{ secrets.DOCKER_USERNAME }}/sasaurabh11/smartgenie:v1.0
+              ${{ secrets.DOCKER_USERNAME }}/smartgenie:v1.0
