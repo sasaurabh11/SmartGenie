@@ -34,14 +34,24 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/smartgenie:v1.0
 
+      - name: Create .env file
+        run: |
+          echo "${{ secrets.PROD_ENV_FILE }}" > ./server/.env
+      
       - name: Upload .env to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
-            host: ${{ secrets.EC2_HOST }}
-            username: ubuntu
-            key: ${{ secrets.EC2_SSH_KEY }}
-            source: ".env"
-            target: "/home/ubuntu/"
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "./server/.env"
+          target: "/home/ubuntu/"
+
+      - name: Debug check .env exists
+        run: |
+          ls -lah
+          cat .env || true
+
 
       # Deploy on EC2
       - name: Deploy to EC2 via SSH
