@@ -6,12 +6,16 @@ on:
 
 jobs:
   build-and-push:
-    runs-on: self-hosted
+    runs-on: self-hosted   # or ubuntu-latest if not using your own runner
 
     steps:
       # Checkout repo
       - name: Checkout code
         uses: actions/checkout@v4
+
+      # Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       # Log in to Docker Hub
       - name: Log in to Docker Hub
@@ -29,7 +33,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/sasaurabh11/smartgenie:v1.0
 
+      # Create .env file (if needed inside repo/docker context)
       - name: Create .env file
         run: |
-          touch .env
-          echo "${{ secrets.PROD_ENV_FILE }}" > .env
+          echo "${{ secrets.PROD_ENV_FILE }}" > ./server/.env
