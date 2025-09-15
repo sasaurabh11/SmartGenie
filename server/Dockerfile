@@ -2,23 +2,15 @@ FROM ghcr.io/puppeteer/puppeteer:24.1.1
 
 USER root
 
-RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/* /tmp/* \
-    && apt-get update \
-    && apt-get install -y wget gnupg ca-certificates procps libxss1 \
-    && mkdir -p /etc/apt/keyrings \
-    && wget -q -O- https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /etc/apt/keyrings/google-chrome.gpg \
-    && echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
-    && apt-get update \
-    && apt-get install -y google-chrome-stable \
+# Install only what you really need (ffmpeg for media processing)
+RUN apt-get update \
+    && apt-get install -y ffmpeg procps \
     && rm -rf /var/lib/apt/lists/* /var/cache/apt/* /tmp/* \
     && wget --quiet https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh -O /usr/sbin/wait-for-it.sh \
     && chmod +x /usr/sbin/wait-for-it.sh
 
-RUN apt-get update \
-    && apt-get install -y ffmpeg \
-    && rm -rf /var/lib/apt/lists/*
-
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+# Puppeteer already works with the bundled Chromium
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 ENV FFMPEG_PATH=/usr/bin/ffmpeg
 ENV FFPROBE_PATH=/usr/bin/ffprobe
 
@@ -26,5 +18,7 @@ WORKDIR /usr/src/app
 
 COPY package*.json ./
 RUN npm ci
+
 COPY . .
-CMD [ "node", "server.js" ]
+
+CMD ["node", "server.js"]
