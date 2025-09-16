@@ -18,9 +18,11 @@ fal.config({
 
 app.use(express.json());
 app.use(cors({
-    origin: [process.env.CORS_ORIGIN],
+    origin: process.env.CORS_ORIGIN,
     credentials: true
 }))
+app.options("*", cors());
+console.log("Allowed Origin:", process.env.CORS_ORIGIN);
 app.use(express.static('stories'));
 
 app.use('/api/v1/user', userRouter);
