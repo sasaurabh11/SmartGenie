@@ -18,7 +18,7 @@ fal.config({
 
 app.use(express.json());
 app.use(cors({
-    origin: https://smart-genie-ai.vercel.app,
+    origin: "https://smart-genie-ai.vercel.app",
     credentials: true
 }))
 console.log("Allowed Origin:", process.env.CORS_ORIGIN);
