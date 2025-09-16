@@ -34,7 +34,6 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/smartgenie:v1.0
 
-      # Deploy on EC2
       # Deploy on EC2 via SSH
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.0.0
@@ -49,7 +48,6 @@ jobs:
             docker stop smartgenie || true
             docker rm smartgenie || true
           
-            # Remove old image (optional, not prune everything)
             docker rmi ${{ secrets.DOCKER_USERNAME }}/smartgenie:v1.0 || true
           
             # Pull latest Docker image
