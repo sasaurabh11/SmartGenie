@@ -18,9 +18,13 @@ fal.config({
 
 app.use(express.json());
 app.use(cors({
-    origin: "*",
-    credentials: true
-}))
+    origin: process.env.CORS_ORIGIN || "https://smart-genie-ai.vercel.app",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
+app.options("*", cors());
 console.log("Allowed Origin:", process.env.CORS_ORIGIN);
 app.use(express.static('stories'));
 
