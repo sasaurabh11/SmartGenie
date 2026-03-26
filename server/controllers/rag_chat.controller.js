@@ -23,7 +23,7 @@ async function transformQuery(question) {
         parts: [{ text: question }]
     });
 
-    const model = ai.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+    const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
     
     const response = await model.generateContent({
         contents: tempHistory,
@@ -72,7 +72,7 @@ const ragChatController = async (req, res) => {
             parts: [{ text: question }] 
         });
 
-        const model = ai.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+        const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
         
         const response = await model.generateContent({
             contents: History,
