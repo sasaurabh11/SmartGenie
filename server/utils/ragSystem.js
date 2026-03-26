@@ -1,6 +1,6 @@
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { PineconeStore } from "@langchain/pinecone";
-import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Document } from "@langchain/core/documents";
 import { Pinecone } from "@pinecone-database/pinecone";
 
@@ -8,16 +8,45 @@ const GEMINI_API_KEY = process.env.GOOGLE_API_KEY;
 const PINECONE_API_KEY = process.env.PINECONE_API_KEY;
 const PINECONE_INDEX_NAME = process.env.PINECONE_INDEX_NAME || "rag-index";
 
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+
 class RAGSystem {
     constructor() {
         console.log("Initializing RAG system with Pinecone...");
     }
 
     async init() {
-        this.embeddings = new GoogleGenerativeAIEmbeddings({
-            apiKey: GEMINI_API_KEY,
-            model: "text-embedding-004",
+        const model = genAI.getGenerativeModel({
+            model: "gemini-embedding-001",
         });
+
+        this.embeddings = {
+            embedQuery: async (text) => {
+                const result = await model.embedContent(text);
+                return result.embedding.values;
+            },
+            embedDocuments: async (texts) => {
+                const results = [];
+
+                for (const text of texts) {
+                    const result = await model.embedContent(text);
+                    results.push(result.embedding.values);
+
+                    await new Promise((res) => setTimeout(res, 200)); // throttle
+                }
+
+                return results;
+            }
+        };
+
+        const testEmbedding = await this.embeddings.embedQuery("test");
+        console.log("Embedding dimension:", testEmbedding.length);
+
+        if (!testEmbedding || testEmbedding.length === 0) {
+            throw new Error("Embedding failed");
+        }
+
+        this.dimension = testEmbedding.length; 
 
         this.textSplitter = new RecursiveCharacterTextSplitter({
             chunkSize: 1000,
@@ -32,10 +61,10 @@ class RAGSystem {
 
         this.vectorStore = new PineconeStore(this.embeddings, {
             pineconeIndex: this.index,
-            namespace: "default", 
+            namespace: "default",
         });
 
-        console.log("RAG system initialized successfully with Pinecone");
+        console.log("RAG system initialized successfully");
     }
 
     async addDocument(docId, text, metadata = {}) {
@@ -80,7 +109,7 @@ class RAGSystem {
         try {
             // Query for all vectors with the docId in metadata
             const queryResponse = await this.index.query({
-                vector: new Array(768).fill(0), // Dummy vector for metadata filtering
+                vector: new Array(this.dimension).fill(0), // Dummy vector for metadata filtering
                 topK: 10000, // Large number to get all matches
                 includeMetadata: true,
                 filter: {
@@ -193,7 +222,7 @@ class RAGSystem {
         try {
             // Query all vectors to get document information
             const queryResponse = await this.index.query({
-                vector: new Array(768).fill(0), // Dummy vector
+                vector: new Array(this.dimension).fill(0), // Dummy vector
                 topK: 10000, // Large number to get all documents
                 includeMetadata: true,
             });

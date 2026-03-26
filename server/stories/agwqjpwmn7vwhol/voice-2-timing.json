@@ -1,0 +1,299 @@
+{
+  "words": [
+    {
+      "word": "He",
+      "startTime": 0.137,
+      "endTime": 0.312,
+      "duration": 0.175
+    },
+    {
+      "word": "was",
+      "startTime": 0.312,
+      "endTime": 0.45,
+      "duration": 0.138
+    },
+    {
+      "word": "the",
+      "startTime": 0.45,
+      "endTime": 0.625,
+      "duration": 0.175
+    },
+    {
+      "word": "chase",
+      "startTime": 0.625,
+      "endTime": 1,
+      "duration": 0.375
+    },
+    {
+      "word": "master",
+      "startTime": 1,
+      "endTime": 1.587,
+      "duration": 0.587
+    },
+    {
+      "word": "his",
+      "startTime": 1.587,
+      "endTime": 1.775,
+      "duration": 0.188
+    },
+    {
+      "word": "bat",
+      "startTime": 1.775,
+      "endTime": 2.037,
+      "duration": 0.262
+    },
+    {
+      "word": "a",
+      "startTime": 2.037,
+      "endTime": 2.125,
+      "duration": 0.088
+    },
+    {
+      "word": "thunderclap",
+      "startTime": 2.125,
+      "endTime": 2.787,
+      "duration": 0.662
+    },
+    {
+      "word": "echoing",
+      "startTime": 2.787,
+      "endTime": 3.125,
+      "duration": 0.338
+    },
+    {
+      "word": "Tendulkar’s",
+      "startTime": 3.125,
+      "endTime": 3.762,
+      "duration": 0.637
+    },
+    {
+      "word": "legacy",
+      "startTime": 3.762,
+      "endTime": 4.83,
+      "duration": 1.068
+    },
+    {
+      "word": "Critics",
+      "startTime": 4.83,
+      "endTime": 5.267,
+      "duration": 0.437
+    },
+    {
+      "word": "once",
+      "startTime": 5.267,
+      "endTime": 5.542,
+      "duration": 0.275
+    },
+    {
+      "word": "branded",
+      "startTime": 5.542,
+      "endTime": 5.955,
+      "duration": 0.413
+    },
+    {
+      "word": "him",
+      "startTime": 5.955,
+      "endTime": 6.142,
+      "duration": 0.187
+    },
+    {
+      "word": "brash",
+      "startTime": 6.142,
+      "endTime": 6.742,
+      "duration": 0.6
+    },
+    {
+      "word": "but",
+      "startTime": 6.742,
+      "endTime": 6.892,
+      "duration": 0.15
+    },
+    {
+      "word": "Kohli’s",
+      "startTime": 6.892,
+      "endTime": 7.342,
+      "duration": 0.45
+    },
+    {
+      "word": "aggressive",
+      "startTime": 7.342,
+      "endTime": 7.83,
+      "duration": 0.488
+    },
+    {
+      "word": "spirit",
+      "startTime": 7.83,
+      "endTime": 8.342,
+      "duration": 0.512
+    },
+    {
+      "word": "fueled",
+      "startTime": 8.342,
+      "endTime": 8.705,
+      "duration": 0.363
+    },
+    {
+      "word": "by",
+      "startTime": 8.705,
+      "endTime": 8.892,
+      "duration": 0.187
+    },
+    {
+      "word": "relentless",
+      "startTime": 8.892,
+      "endTime": 9.392,
+      "duration": 0.5
+    },
+    {
+      "word": "dedication",
+      "startTime": 9.392,
+      "endTime": 10.105,
+      "duration": 0.713
+    },
+    {
+      "word": "became",
+      "startTime": 10.105,
+      "endTime": 10.517,
+      "duration": 0.412
+    },
+    {
+      "word": "his",
+      "startTime": 10.517,
+      "endTime": 10.617,
+      "duration": 0.1
+    },
+    {
+      "word": "superpower",
+      "startTime": 10.617,
+      "endTime": 11.947,
+      "duration": 1.33
+    },
+    {
+      "word": "On",
+      "startTime": 11.947,
+      "endTime": 12.01,
+      "duration": 0.063
+    },
+    {
+      "word": "the",
+      "startTime": 12.01,
+      "endTime": 12.135,
+      "duration": 0.125
+    },
+    {
+      "word": "pitch",
+      "startTime": 12.135,
+      "endTime": 12.597,
+      "duration": 0.462
+    },
+    {
+      "word": "he",
+      "startTime": 12.597,
+      "endTime": 12.76,
+      "duration": 0.163
+    },
+    {
+      "word": "led",
+      "startTime": 12.76,
+      "endTime": 13.01,
+      "duration": 0.25
+    },
+    {
+      "word": "with",
+      "startTime": 13.01,
+      "endTime": 13.197,
+      "duration": 0.187
+    },
+    {
+      "word": "fierce",
+      "startTime": 13.197,
+      "endTime": 13.522,
+      "duration": 0.325
+    },
+    {
+      "word": "conviction",
+      "startTime": 13.522,
+      "endTime": 14.272,
+      "duration": 0.75
+    },
+    {
+      "word": "shattering",
+      "startTime": 14.272,
+      "endTime": 14.76,
+      "duration": 0.488
+    },
+    {
+      "word": "records",
+      "startTime": 14.76,
+      "endTime": 15.197,
+      "duration": 0.437
+    },
+    {
+      "word": "and",
+      "startTime": 15.197,
+      "endTime": 15.335,
+      "duration": 0.138
+    },
+    {
+      "word": "silencing",
+      "startTime": 15.335,
+      "endTime": 15.885,
+      "duration": 0.55
+    },
+    {
+      "word": "doubters",
+      "startTime": 15.885,
+      "endTime": 16.51,
+      "duration": 0.625
+    },
+    {
+      "word": "a",
+      "startTime": 16.51,
+      "endTime": 16.572,
+      "duration": 0.062
+    },
+    {
+      "word": "king",
+      "startTime": 16.572,
+      "endTime": 16.835,
+      "duration": 0.263
+    },
+    {
+      "word": "forging",
+      "startTime": 16.835,
+      "endTime": 17.16,
+      "duration": 0.325
+    },
+    {
+      "word": "his",
+      "startTime": 17.16,
+      "endTime": 17.447,
+      "duration": 0.287
+    },
+    {
+      "word": "own",
+      "startTime": 17.447,
+      "endTime": 17.572,
+      "duration": 0.125
+    },
+    {
+      "word": "legend",
+      "startTime": 17.572,
+      "endTime": 17.947,
+      "duration": 0.375
+    },
+    {
+      "word": "amidst",
+      "startTime": 17.947,
+      "endTime": 18.26,
+      "duration": 0.313
+    },
+    {
+      "word": "pressure",
+      "startTime": 18.26,
+      "endTime": 18.56,
+      "duration": 0.3
+    }
+  ],
+  "totalDuration": 18.56
+}

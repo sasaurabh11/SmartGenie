@@ -139,7 +139,7 @@ Story:`;
 }
 
 async function generateImages(prompt) {
-    const API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0";
+    const API_URL = "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-base-1.0";
     const API_TOKEN = process.env.HUGGINGFACE_API_KEY;
 
     try {

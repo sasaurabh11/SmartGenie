@@ -29,7 +29,7 @@ const registerUser = async (req, res) => {
         const newUser = new userModel(userData);
         const user = await newUser.save();
 
-        const token = jwt.sign({id : user._id}, process.env.JWT_SECRET, {expiresIn : "1h"});
+        const token = jwt.sign({id : user._id}, process.env.JWT_SECRET, {expiresIn : "10h"});
 
         res.status(200).json({success : true, token, user : {name : user.name}});
 
@@ -59,7 +59,7 @@ const loginUser = async (req, res) => {
             return res.status(400).json({success : false, message : "Invalid credentials"});
         }
 
-        const token = jwt.sign({id : user._id}, process.env.JWT_SECRET, {expiresIn : "1h"});
+        const token = jwt.sign({id : user._id}, process.env.JWT_SECRET, {expiresIn : "10h"});
 
         return res.status(200).json({success : true, token, user : {name : user.name}});
     } catch (error) {

@@ -1,0 +1,293 @@
+{
+  "words": [
+    {
+      "word": "From",
+      "startTime": 0.187,
+      "endTime": 0.375,
+      "duration": 0.188
+    },
+    {
+      "word": "Delhi",
+      "startTime": 0.375,
+      "endTime": 0.937,
+      "duration": 0.562
+    },
+    {
+      "word": "Virat",
+      "startTime": 0.937,
+      "endTime": 1.312,
+      "duration": 0.375
+    },
+    {
+      "word": "Kohli",
+      "startTime": 1.312,
+      "endTime": 1.762,
+      "duration": 0.45
+    },
+    {
+      "word": "rose",
+      "startTime": 1.762,
+      "endTime": 2.817,
+      "duration": 1.055
+    },
+    {
+      "word": "Even",
+      "startTime": 2.817,
+      "endTime": 3.005,
+      "duration": 0.188
+    },
+    {
+      "word": "with",
+      "startTime": 3.005,
+      "endTime": 3.192,
+      "duration": 0.187
+    },
+    {
+      "word": "his",
+      "startTime": 3.192,
+      "endTime": 3.342,
+      "duration": 0.15
+    },
+    {
+      "word": "father's",
+      "startTime": 3.342,
+      "endTime": 3.78,
+      "duration": 0.438
+    },
+    {
+      "word": "passing",
+      "startTime": 3.78,
+      "endTime": 4.192,
+      "duration": 0.412
+    },
+    {
+      "word": "mid-match",
+      "startTime": 4.192,
+      "endTime": 4.942,
+      "duration": 0.75
+    },
+    {
+      "word": "he",
+      "startTime": 4.942,
+      "endTime": 5.067,
+      "duration": 0.125
+    },
+    {
+      "word": "became",
+      "startTime": 5.067,
+      "endTime": 5.442,
+      "duration": 0.375
+    },
+    {
+      "word": "King",
+      "startTime": 5.442,
+      "endTime": 5.692,
+      "duration": 0.25
+    },
+    {
+      "word": "Kohli",
+      "startTime": 5.692,
+      "endTime": 6.217,
+      "duration": 0.525
+    },
+    {
+      "word": "the",
+      "startTime": 6.217,
+      "endTime": 6.355,
+      "duration": 0.138
+    },
+    {
+      "word": "Chase",
+      "startTime": 6.355,
+      "endTime": 6.667,
+      "duration": 0.312
+    },
+    {
+      "word": "Master",
+      "startTime": 6.667,
+      "endTime": 7.772,
+      "duration": 1.105
+    },
+    {
+      "word": "He",
+      "startTime": 7.772,
+      "endTime": 7.947,
+      "duration": 0.175
+    },
+    {
+      "word": "shattered",
+      "startTime": 7.947,
+      "endTime": 8.385,
+      "duration": 0.438
+    },
+    {
+      "word": "records",
+      "startTime": 8.385,
+      "endTime": 9.072,
+      "duration": 0.687
+    },
+    {
+      "word": "captained",
+      "startTime": 9.072,
+      "endTime": 9.51,
+      "duration": 0.438
+    },
+    {
+      "word": "India",
+      "startTime": 9.51,
+      "endTime": 9.772,
+      "duration": 0.262
+    },
+    {
+      "word": "to",
+      "startTime": 9.772,
+      "endTime": 9.897,
+      "duration": 0.125
+    },
+    {
+      "word": "U19",
+      "startTime": 9.897,
+      "endTime": 10.51,
+      "duration": 0.613
+    },
+    {
+      "word": "and",
+      "startTime": 10.51,
+      "endTime": 10.635,
+      "duration": 0.125
+    },
+    {
+      "word": "2024",
+      "startTime": 10.635,
+      "endTime": 11.522,
+      "duration": 0.887
+    },
+    {
+      "word": "T20",
+      "startTime": 11.522,
+      "endTime": 12.072,
+      "duration": 0.55
+    },
+    {
+      "word": "World",
+      "startTime": 12.072,
+      "endTime": 12.347,
+      "duration": 0.275
+    },
+    {
+      "word": "Cup",
+      "startTime": 12.347,
+      "endTime": 12.572,
+      "duration": 0.225
+    },
+    {
+      "word": "wins",
+      "startTime": 12.572,
+      "endTime": 13.01,
+      "duration": 0.438
+    },
+    {
+      "word": "and",
+      "startTime": 13.01,
+      "endTime": 13.11,
+      "duration": 0.1
+    },
+    {
+      "word": "led",
+      "startTime": 13.11,
+      "endTime": 13.385,
+      "duration": 0.275
+    },
+    {
+      "word": "RCB",
+      "startTime": 13.385,
+      "endTime": 13.76,
+      "duration": 0.375
+    },
+    {
+      "word": "to",
+      "startTime": 13.76,
+      "endTime": 13.885,
+      "duration": 0.125
+    },
+    {
+      "word": "their",
+      "startTime": 13.885,
+      "endTime": 14.072,
+      "duration": 0.187
+    },
+    {
+      "word": "first",
+      "startTime": 14.072,
+      "endTime": 14.46,
+      "duration": 0.388
+    },
+    {
+      "word": "IPL",
+      "startTime": 14.46,
+      "endTime": 14.822,
+      "duration": 0.362
+    },
+    {
+      "word": "title",
+      "startTime": 14.822,
+      "endTime": 15.915,
+      "duration": 1.093
+    },
+    {
+      "word": "Retiring",
+      "startTime": 15.915,
+      "endTime": 16.44,
+      "duration": 0.525
+    },
+    {
+      "word": "from",
+      "startTime": 16.44,
+      "endTime": 16.727,
+      "duration": 0.287
+    },
+    {
+      "word": "formats",
+      "startTime": 16.727,
+      "endTime": 17.402,
+      "duration": 0.675
+    },
+    {
+      "word": "his",
+      "startTime": 17.402,
+      "endTime": 17.602,
+      "duration": 0.2
+    },
+    {
+      "word": "legendary",
+      "startTime": 17.602,
+      "endTime": 18.115,
+      "duration": 0.513
+    },
+    {
+      "word": "status",
+      "startTime": 18.115,
+      "endTime": 18.615,
+      "duration": 0.5
+    },
+    {
+      "word": "was",
+      "startTime": 18.615,
+      "endTime": 18.852,
+      "duration": 0.237
+    },
+    {
+      "word": "undeniably",
+      "startTime": 18.852,
+      "endTime": 19.677,
+      "duration": 0.825
+    },
+    {
+      "word": "etched",
+      "startTime": 19.677,
+      "endTime": 19.977,
+      "duration": 0.3
+    }
+  ],
+  "totalDuration": 19.977
+}
