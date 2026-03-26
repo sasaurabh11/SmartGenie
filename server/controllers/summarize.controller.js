@@ -24,10 +24,7 @@ async function scrapeWebsite(url) {
             '--disable-dev-shm-usage',
             '--disable-gpu'
         ],
-          executablePath:
-            process.env.NODE_ENV === "production"
-              ? process.env.PUPPETEER_EXECUTABLE_PATH
-              : puppeteer.executablePath(),
+          executablePath: executablePath(),
     });
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: "domcontentloaded" });
