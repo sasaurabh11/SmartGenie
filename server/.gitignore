@@ -37,3 +37,5 @@ Thumbs.db
 # IDEs
 .idea/
 *.swp
+
+stories/

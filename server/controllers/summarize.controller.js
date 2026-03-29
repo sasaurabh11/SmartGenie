@@ -17,19 +17,35 @@ const rag_system = new RAGSystem();
 await rag_system.init()
 
 async function scrapeWebsite(url) {
-    const browser = await puppeteer.launch({ headless: "new",
+    const browser = await puppeteer.launch({
+        headless: "new",
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
             '--disable-dev-shm-usage',
             '--disable-gpu'
         ],
-          executablePath: executablePath(),
+        executablePath: executablePath(),
     });
+
     const page = await browser.newPage();
-    await page.goto(url, { waitUntil: "domcontentloaded" });
+
+    await page.setRequestInterception(true);
+    page.on('request', req => {
+        if (['image', 'stylesheet', 'font'].includes(req.resourceType())) {
+            req.abort();
+        } else {
+            req.continue();
+        }
+    });
+
+    await page.goto(url, {
+        waitUntil: 'domcontentloaded',
+        timeout: 60000
+    });
 
     const text = await page.evaluate(() => document.body.innerText);
+
     await browser.close();
 
     return text.replace(/\s+/g, " ").trim();
@@ -154,7 +170,7 @@ async function generateImages(prompt) {
                     'Content-Type': 'application/json'
                 },
                 responseType: 'arraybuffer',
-                timeout: 60000,
+                timeout: 120000,
             }
         );
 
@@ -180,79 +196,77 @@ AWS.config.update({
 
 const polly = new AWS.Polly();
 
-async function generateVoiceOver(text, index, storiesDir) {
-    try {
-        console.log("Starting voice generation...");
-        const speechMarkParams = {
-            Engine: 'neural',
-            LanguageCode: 'en-IN',  
-            OutputFormat: 'json',
-            SpeechMarkTypes: ['word', 'sentence'],
-            Text: text,
-            VoiceId: 'Kajal' 
-        };
+async function generateVoiceOverData(text) {
+    const speechMarkParams = {
+        Engine: 'neural',
+        LanguageCode: 'en-IN',
+        OutputFormat: 'json',
+        SpeechMarkTypes: ['word', 'sentence'],
+        Text: text,
+        VoiceId: 'Kajal'
+    };
 
-        const speechMarkResponse = await polly.synthesizeSpeech(speechMarkParams).promise();
+    const audioParams = {
+        Engine: 'neural',
+        LanguageCode: 'en-IN',
+        OutputFormat: 'mp3',
+        Text: text,
+        VoiceId: 'Kajal'
+    };
 
-        console.log("speechmark response", speechMarkResponse)
+    const [speechMarkResponse, audioResponse] = await Promise.all([
+        polly.synthesizeSpeech(speechMarkParams).promise(),
+        polly.synthesizeSpeech(audioParams).promise()
+    ]);
 
-        const speechMarks = speechMarkResponse.AudioStream.toString()
-            .split('\n')
-            .filter(Boolean)
-            .map(line => JSON.parse(line));
+    const speechMarks = speechMarkResponse.AudioStream.toString()
+        .split('\n')
+        .filter(Boolean)
+        .map(line => JSON.parse(line));
 
-        const wordMarks = speechMarks.filter(mark => mark.type === 'word');
+    const wordMarks = speechMarks.filter(mark => mark.type === 'word');
 
-        const timingData = wordMarks.map((mark, index) => {
-            const nextMark = wordMarks[index + 1];
-            const currentDuration = mark.duration / 1000;
-            
-            const startTime = mark.time / 1000;
-            
-            const endTime = nextMark 
-                ? nextMark.time / 1000 
-                : mark.duration 
-                    ? (mark.time + mark.duration) / 1000 
-                    : startTime + 0.3;
-            
-            return {
-                word: mark.value,
-                startTime: parseFloat(startTime.toFixed(3)),
-                endTime: parseFloat(endTime.toFixed(3)),
-                duration: parseFloat((endTime - startTime).toFixed(3))
-            };
-        });
+    const timingData = wordMarks.map((mark, index) => {
+        const nextMark = wordMarks[index + 1];
 
-        const totalDuration = parseFloat(timingData[timingData.length - 1].endTime.toFixed(3));
-
-        const audioParams = {
-            Engine: 'neural',
-            LanguageCode: 'en-IN', 
-            OutputFormat: 'mp3',
-            Text: text,
-            VoiceId: 'Kajal' 
-        };
-
-        const audioResponse = await polly.synthesizeSpeech(audioParams).promise();
-
-        console.log("audioResponse ", audioResponse)
-
-        const audioFilePath = path.join(storiesDir, `voice-${index + 1}.mp3`);
-        await fsPromises.writeFile(audioFilePath, audioResponse.AudioStream);
-
-        const timingFilePath = path.join(storiesDir, `voice-${index + 1}-timing.json`);
-        await fsPromises.writeFile(timingFilePath, JSON.stringify({words : timingData, totalDuration: totalDuration}, null, 2));
+        const startTime = mark.time / 1000;
+        const endTime = nextMark
+            ? nextMark.time / 1000
+            : startTime + 0.3;
 
         return {
-            audioFile: audioFilePath,
-            timingFile: timingFilePath,
-            timing: timingData
+            word: mark.value,
+            startTime,
+            endTime,
+            duration: endTime - startTime
         };
+    });
 
-    } catch (error) {
-        console.error("Error details:", error);
-        throw new Error(`Failed to generate voiceover with timing: ${error.message}`);
-    }
+    const totalDuration = timingData.length > 0
+    ? timingData[timingData.length - 1].endTime
+    : 1; // fallback
+
+    return {
+        audioBuffer: audioResponse.AudioStream,
+        timingData,
+        totalDuration
+    };
+}
+
+async function saveVoiceOver(data, index, storiesDir) {
+    const audioFilePath = path.join(storiesDir, `voice-${index + 1}.mp3`);
+    const timingFilePath = path.join(storiesDir, `voice-${index + 1}-timing.json`);
+
+    await fsPromises.writeFile(audioFilePath, data.audioBuffer);
+    await fsPromises.writeFile(
+        timingFilePath,
+        JSON.stringify({
+            words: data.timingData,
+            totalDuration: data.totalDuration
+        }, null, 2)
+    );
+
+    return { audioFilePath, timingFilePath };
 }
 
 async function saveStoriesToFile(stories, images, url) {
@@ -315,9 +329,10 @@ const summarize = async (req, res) => {
 
         const chunksAdded = await rag_system.addDocument(docId, scrapedText, { source: url });
         console.log(`Added ${chunksAdded} chunks to RAG for ${url}`);
+        // await new Promise(res => setTimeout(res, 30000));
 
         //create chunk of scraped data
-        const wordsPerChunk = 10000;
+        const wordsPerChunk = 4000;
         const words = scrapedText.split(" ");
         const chunks = [];
 
@@ -334,27 +349,34 @@ const summarize = async (req, res) => {
         }
 
         //summarization using hugging face
-        const summarise = await Promise.all(
-            chunks.map(async (chunk) => {
-                return await summarizeText(chunk);
-            })
-        )
-        
-        const images = await Promise.all(
-            summarise.map( async (summary) => {
-                return await generateImages(summary);
-            })
-        )
-        
-        const storiesDir = await saveStoriesToFile(summarise, images, url);
-        console.log("stories directory", storiesDir)
+        const results = await Promise.all(
+            chunks.map(async (chunk, index) => {
+                const summary = await summarizeText(chunk);
+                console.log("sumamry", summary)
 
-        console.log("Generating voiceovers...");
-        const voiceoverFiles = await Promise.all(
-            summarise.map( async (summary, index) => await generateVoiceOver(summary, index, storiesDir))
+                // Run heavy APIs in parallel
+                const [image, voiceData] = await Promise.all([
+                    generateImages(summary),
+                    generateVoiceOverData(summary)
+                ]);
+
+                return { summary, image, voiceData, index };
+            })
         );
+
+        // Extract
+        const summarise = results.map(r => r.summary);
+        const images = results.map(r => r.image);
+
+        // Save stories first
+        const storiesDir = await saveStoriesToFile(summarise, images, url);
+
+        // Save voice files (fast I/O, parallel)
+        const voiceoverFiles = await Promise.all(
+            results.map(r => saveVoiceOver(r.voiceData, r.index, storiesDir))
+        );
+
         console.log("All voiceovers generated:", voiceoverFiles);
-        
 
         res.status(200).json({
             success: true,
@@ -398,7 +420,14 @@ const buildVideo = async (req, res) => {
             // read the transcription file
             const transcription = JSON.parse(fs.readFileSync(inputTransciption, 'utf-8'));
             const words = transcription.words;
-            const duration = parseFloat(transcription.totalDuration).toFixed(2);
+            let duration = Number(transcription.totalDuration);
+
+            if (!duration || isNaN(duration)) {
+                console.log("Invalid duration, using fallback");
+                duration = 3; // fallback seconds
+            }
+
+            duration = duration.toFixed(2);
 
             // Build the drawtext filter string
             let drawtextFilter = '';

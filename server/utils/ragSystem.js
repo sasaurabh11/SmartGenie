@@ -1,18 +1,18 @@
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
-import { PineconeStore } from "@langchain/pinecone";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Document } from "@langchain/core/documents";
 import { Pinecone } from "@pinecone-database/pinecone";
+import pLimit from "p-limit";
 
 const GEMINI_API_KEY = process.env.GOOGLE_API_KEY;
 const PINECONE_API_KEY = process.env.PINECONE_API_KEY;
 const PINECONE_INDEX_NAME = process.env.PINECONE_INDEX_NAME || "rag-index";
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 class RAGSystem {
     constructor() {
-        console.log("Initializing RAG system with Pinecone...");
+        console.log("Initializing RAG system...");
     }
 
     async init() {
@@ -20,37 +20,57 @@ class RAGSystem {
             model: "gemini-embedding-001",
         });
 
-        this.embeddings = {
-            embedQuery: async (text) => {
-                const result = await model.embedContent(text);
-                return result.embedding.values;
-            },
-            embedDocuments: async (texts) => {
-                const results = [];
-
-                for (const text of texts) {
-                    const result = await model.embedContent(text);
-                    results.push(result.embedding.values);
-
-                    await new Promise((res) => setTimeout(res, 200)); // throttle
+        async function retryWithBackoff(fn, retries = 5) {
+            try {
+                return await fn();
+            } catch (err) {
+                if (err.status === 429 && retries > 0) {
+                    const delay = 25000;
+                    console.log(`Rate limited. Retrying in ${delay / 1000}s...`);
+                    await new Promise(res => setTimeout(res, delay));
+                    return retryWithBackoff(fn, retries - 1);
                 }
-
-                return results;
+                throw err;
             }
-        };
-
-        const testEmbedding = await this.embeddings.embedQuery("test");
-        console.log("Embedding dimension:", testEmbedding.length);
-
-        if (!testEmbedding || testEmbedding.length === 0) {
-            throw new Error("Embedding failed");
         }
 
-        this.dimension = testEmbedding.length; 
+        const limit = pLimit(5);
+
+        this.embedDocumentsSafe = async (texts) => {
+            const BATCH_SIZE = 10;
+
+            const batches = [];
+            for (let i = 0; i < texts.length; i += BATCH_SIZE) {
+                batches.push(texts.slice(i, i + BATCH_SIZE));
+            }
+
+            const results = [];
+
+            for (const batch of batches) {
+                const batchResults = await Promise.all(
+                    batch.map(text =>
+                        limit(() =>
+                            retryWithBackoff(() =>
+                                model.embedContent(text)
+                            )
+                        )
+                    )
+                );
+
+                results.push(...batchResults);
+            }
+
+            return results.map(r => r.embedding.values);
+        };
+
+        const test = await this.embedDocumentsSafe(["test"]);
+        this.dimension = test[0].length;
+
+        console.log("Embedding dimension:", this.dimension);
 
         this.textSplitter = new RecursiveCharacterTextSplitter({
-            chunkSize: 1000,
-            chunkOverlap: 200,
+            chunkSize: 2000,
+            chunkOverlap: 100,
         });
 
         this.pinecone = new Pinecone({
@@ -58,11 +78,6 @@ class RAGSystem {
         });
 
         this.index = this.pinecone.index(PINECONE_INDEX_NAME);
-
-        this.vectorStore = new PineconeStore(this.embeddings, {
-            pineconeIndex: this.index,
-            namespace: "default",
-        });
 
         console.log("RAG system initialized successfully");
     }
@@ -74,7 +89,7 @@ class RAGSystem {
             const chunks = await this.textSplitter.splitText(text);
 
             if (chunks.length === 0) {
-                console.log(`No chunks created for document ${docId}`);
+                console.log(`No chunks for ${docId}`);
                 return 0;
             }
 
@@ -85,19 +100,33 @@ class RAGSystem {
                         metadata: {
                             docId,
                             chunkIndex: i,
+                            text: chunk,
                             createdAt: new Date().toISOString(),
                             ...metadata,
                         },
                     })
             );
 
-            // Generate unique IDs for each chunk
             const ids = documents.map((_, i) => `${docId}_chunk_${i}`);
 
-            await this.vectorStore.addDocuments(documents, { ids });
+            const texts = documents.map(doc => doc.pageContent);
+            const vectors = await this.embedDocumentsSafe(texts);
 
-            console.log(`Added ${documents.length} chunks for document ${docId}`);
+            const upserts = vectors.map((vec, i) => ({
+                id: ids[i],
+                values: vec,
+                metadata: documents[i].metadata
+            }));
+
+            const batchSize = 100;
+            for (let i = 0; i < upserts.length; i += batchSize) {
+                const batch = upserts.slice(i, i + batchSize);
+                await this.index.upsert(batch);
+            }
+
+            console.log(`Added ${documents.length} chunks for ${docId}`);
             return documents.length;
+
         } catch (error) {
             console.error(`Error adding document ${docId}:`, error);
             throw error;
@@ -106,39 +135,34 @@ class RAGSystem {
 
     async deleteDocument(docId, options = {}) {
         const { silent = false } = options;
+
         try {
-            // Query for all vectors with the docId in metadata
             const queryResponse = await this.index.query({
-                vector: new Array(this.dimension).fill(0), // Dummy vector for metadata filtering
-                topK: 10000, // Large number to get all matches
+                vector: new Array(this.dimension).fill(0),
+                topK: 10000,
                 includeMetadata: true,
-                filter: {
-                    docId: { $eq: docId }
-                }
+                filter: { docId: { $eq: docId } }
             });
 
-            if (queryResponse.matches && queryResponse.matches.length > 0) {
-                const idsToDelete = queryResponse.matches.map(match => match.id);
-                
-                // Delete vectors in batches (Pinecone has limits)
+            if (queryResponse.matches?.length > 0) {
+                const idsToDelete = queryResponse.matches.map(m => m.id);
+
                 const batchSize = 100;
                 for (let i = 0; i < idsToDelete.length; i += batchSize) {
-                    const batch = idsToDelete.slice(i, i + batchSize);
-                    await this.index.deleteMany(batch);
+                    await this.index.deleteMany(idsToDelete.slice(i, i + batchSize));
                 }
 
                 if (!silent) {
-                    console.log(`Deleted ${idsToDelete.length} chunks for document ${docId}`);
+                    console.log(`Deleted ${idsToDelete.length} chunks for ${docId}`);
                 }
+
                 return idsToDelete.length;
-            } else {
-                if (!silent) {
-                    console.log(`No chunks found for document ${docId}`);
-                }
-                return 0;
             }
+
+            return 0;
+
         } catch (error) {
-            console.error(`Error deleting document ${docId}:`, error);
+            console.error(`Delete error:`, error);
             if (!silent) throw error;
             return 0;
         }
@@ -146,61 +170,57 @@ class RAGSystem {
 
     async search(query, nResults = 5, docId = null) {
         try {
-            let filter = undefined;
-            if (docId) {
-                filter = { docId: { $eq: docId } };
-            }
+            const queryEmbedding = await this.embedDocumentsSafe([query]);
 
-            const results = await this.vectorStore.similaritySearchWithScore(
-                query,
-                nResults,
-                filter
-            );
+            const results = await this.index.query({
+                vector: queryEmbedding[0],
+                topK: nResults,
+                includeMetadata: true,
+                filter: docId ? { docId: { $eq: docId } } : undefined
+            });
 
-            return results.map(([doc, score]) => ({
-                content: doc.pageContent,
-                score: score,
-                metadata: doc.metadata,
+            return results.matches.map(match => ({
+                content: match.metadata?.text || "",
+                score: match.score,
+                metadata: match.metadata
             }));
+
         } catch (error) {
-            console.error(`Search error: ${error.message}`);
+            console.error("Search error:", error.message);
             return [];
         }
     }
 
     async getRelevantContent(query, maxTokens = 120000, docId = null) {
         try {
-            const allResults = [];
             let tokenCount = 0;
+            const results = [];
+
             const nResults = 20;
 
-            if (docId) {
-                const results = await this.search(query, nResults, docId);
-                for (const result of results) {
-                    const content = result.content;
-                    const estimatedTokens = content.split(/\s+/).length * 1.33;
-                    if (tokenCount + estimatedTokens <= maxTokens) {
-                        allResults.push(result);
-                        tokenCount += estimatedTokens;
-                    }
-                }
-                // If we have enough content, return early
-                if (tokenCount >= maxTokens * 0.8) {
-                    return allResults.sort((a, b) => b.score - a.score);
+            const primaryResults = await this.search(query, nResults, docId);
+
+            for (const res of primaryResults) {
+                const content = res.content || "";
+                const estimatedTokens = content.split(/\s+/).length * 1.3;
+
+                if (tokenCount + estimatedTokens <= maxTokens) {
+                    results.push(res);
+                    tokenCount += estimatedTokens;
                 }
             }
 
-            // Search globally for additional results if space remains
-            if (maxTokens - tokenCount > 10000) {
-                const results = await this.search(query, nResults, null);
-                for (const result of results) {
-                    // Skip if we already have this from docId-specific search
-                    if (docId && result.metadata?.docId === docId) continue;
-                    
-                    const content = result.content;
-                    const estimatedTokens = content.split(/\s+/).length * 1.33;
+            if (tokenCount < maxTokens * 0.8) {
+                const globalResults = await this.search(query, nResults, null);
+
+                for (const res of globalResults) {
+                    if (docId && res.metadata?.docId === docId) continue;
+
+                    const content = res.content || "";
+                    const estimatedTokens = content.split(/\s+/).length * 1.3;
+
                     if (tokenCount + estimatedTokens <= maxTokens) {
-                        allResults.push(result);
+                        results.push(res);
                         tokenCount += estimatedTokens;
                     } else {
                         break;
@@ -208,73 +228,31 @@ class RAGSystem {
                 }
             }
 
-            // Sort by descending score
-            allResults.sort((a, b) => b.score - a.score);
-            return allResults;
+            results.sort((a, b) => b.score - a.score);
+
+            return results;
 
         } catch (error) {
-            console.error(`Error in getRelevantContent: ${error.message}`);
+            console.error("getRelevantContent error:", error);
             return [];
         }
     }
 
-    async listDocuments() {
-        try {
-            // Query all vectors to get document information
-            const queryResponse = await this.index.query({
-                vector: new Array(this.dimension).fill(0), // Dummy vector
-                topK: 10000, // Large number to get all documents
-                includeMetadata: true,
-            });
-
-            const docGroups = {};
-            
-            if (queryResponse.matches) {
-                queryResponse.matches.forEach((match) => {
-                    const docId = match.metadata?.docId;
-                    if (docId && !docGroups[docId]) {
-                        docGroups[docId] = {
-                            docId: docId,
-                            chunks: 0,
-                            createdAt: match.metadata?.createdAt,
-                            metadata: { ...match.metadata },
-                        };
-                        // Clean up metadata
-                        delete docGroups[docId].metadata.docId;
-                        delete docGroups[docId].metadata.chunkIndex;
-                        delete docGroups[docId].metadata.createdAt;
-                    }
-                    if (docId) {
-                        docGroups[docId].chunks++;
-                    }
-                });
-            }
-
-            return Object.values(docGroups);
-        } catch (error) {
-            console.error(`Error listing documents: ${error.message}`);
-            return [];
-        }
-    }
-
-    // Additional utility method to get index stats
     async getIndexStats() {
         try {
-            const stats = await this.index.describeIndexStats();
-            return stats;
+            return await this.index.describeIndexStats();
         } catch (error) {
-            console.error(`Error getting index stats: ${error.message}`);
+            console.error("Stats error:", error);
             return null;
         }
     }
 
-    // Method to clear all data 
     async clearIndex() {
         try {
             await this.index.deleteAll();
-            console.log("Index cleared successfully");
+            console.log("Index cleared");
         } catch (error) {
-            console.error("Error clearing index:", error);
+            console.error("Clear error:", error);
             throw error;
         }
     }
